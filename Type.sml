@@ -11,13 +11,15 @@ struct
 		| IntRef
 		| CharRef
 		
-  fun convertType (S100.Val v) = (case getType(v) of
-				      S100.Int _ => Int
-				    | S100.Char _ => Char)
-    | convertType (S100.Ref r) = (case getType(r) of
-				      S100.Int _ => Int
-				    | S100.Char _ => Char)
-				     
+  fun convertType x l = 
+      (case x of
+	   S100.Int _ => (case l of
+			      S100.Ref _ => IntRef
+			    | S100.Val _ => Int)
+	 | S100.Char _ => (case l of
+			       S100.Ref _ => CharRef
+			     | S100.Val _ => Char))
+  
 
   fun getName (S100.Val (f,p)) = f
     | getName (S100.Ref (f,p)) = f;
