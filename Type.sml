@@ -11,15 +11,9 @@ struct
 		| IntRef
 		| CharRef
 		
-  fun convertType x l = 
-      (case x of
-	   S100.Int _ => (case l of
-			      S100.Ref _ => IntRef
-			    | S100.Val _ => Int)
-	 | S100.Char _ => (case l of
-			       S100.Ref _ => CharRef
-			     | S100.Val _ => Char))
-  
+
+  fun convertType (S100.Int _) = Int
+    | convertType (S100.Char _) = Char  
 
   fun getName (S100.Val (f,p)) = f
     | getName (S100.Ref (f,p)) = f;
