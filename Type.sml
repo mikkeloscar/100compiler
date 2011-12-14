@@ -148,8 +148,13 @@ struct
 
   fun checkProg fs =
     let
-      val ftable = getFuns fs [("getint",([],Int)),
-			       ("putint",([Int],Int))]
+      val ftable = getFuns fs [("walloc",([Int],IntRef)),
+                   ("balloc",([Int],CharRef)),
+                   ("getint",([],Int)),
+			       ("putint",([Int],Int)),
+                   ("getstring",([Int],Int)),(* getstring har ikke korrekt
+                                                returtype endnu, kun for at teste *)
+                   ("putstring",([CharRef],CharRef))] (* korrekt type? *) 
     in
       List.app (fn f => checkFunDec f ftable) fs;
       case lookup "main" ftable of
@@ -157,5 +162,4 @@ struct
       | SOME ([],Int) => ()
       | _ => raise Error ("main function has illegal type",(0,0))
     end
-
 end

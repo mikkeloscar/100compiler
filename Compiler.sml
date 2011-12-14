@@ -185,7 +185,8 @@ struct
 	in
 	  code0 @ [Mips.MOVE ("2",t), Mips.J exitLabel]
 	end
-    | S100.Block (e,s,p) => [Mips.MOVE ("2","tis"), Mips.J "exit"]
+    | S100.Block (e,s,p) => [Mips.MOVE ("2","tis"), Mips.J "exit"] (* fjern tis
+    *)
     | S100.While (e,s,p) => []
 
   (* code for saving and restoring callee-saves registers *)
@@ -275,7 +276,14 @@ struct
          Mips.SYSCALL]            (* exit *)
       @ funsCode		  (* code for functions *)
 
-      @ [Mips.LABEL "putint",     (* putint function *)
+      @ [
+     Mips.LABEL "walloc", (* walloc not implemented *)
+     Mips.LABEL "balloc", (* balloc not implemented *)
+     Mips.LABEL "getstring", (* getstring not implemented *)
+     Mips.LABEL "putstring", (* putstring not implemented *)
+      
+      
+     Mips.LABEL "putint",     (* putint function *)
 	 Mips.ADDI(SP,SP,"-8"),
 	 Mips.SW ("2",SP,"0"),    (* save used registers *)
 	 Mips.SW ("4",SP,"4"),

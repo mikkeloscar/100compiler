@@ -1,0 +1,48 @@
+\documentclass[12pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+% \usepackage[danish]{babel}
+\usepackage{cite}
+% \usepackage[danish=guillemets]{csquotes}
+%\defineshorthand{"`}{\openautoquote}
+%\defineshorthand{"'}{\closeautoquote}
+
+% \usepackage[footnotesize,margin=1cm]{caption}
+% \usepackage{mathpazo}
+% \usepackage{enumitem}
+% \usepackage{booktabs}
+\usepackage{enumerate}
+\usepackage[pdftex,bookmarks=true]{hyperref}
+\hypersetup{
+    colorlinks,%
+    citecolor=black,%
+    filecolor=black,%
+    linkcolor=black,%
+    urlcolor=black
+}
+\usepackage{color}
+\usepackage{minted}
+% \usemintedstyle{trac}
+\definecolor{bg}{rgb}{0.95,0.95,0.95}
+
+% \frenchspacing
+
+\begin{document}
+
+% titel
+\author{Mikkel Oscar Lyderik Larsen \\ Aske Mottelson Clausen}
+\title{Oversættere \\ G-opgave}
+\maketitle
+
+\thispagestyle{empty}
+\newpage
+
+\begin{minted}[bgcolor=bg]{sml}
+fun x = []
+  | x::s = [x]
+\end{minted}
+
+\bibliography{litteratur}{}
+\bibliographystyle{plain}
+\end{document}

@@ -3,3 +3,23 @@
 *.uo
 *.ui
 C100
+
+# tex files #
+#############
+*.log
+*.aux
+*.make
+*.d
+*.bbl
+*.out
+*.pdf
+*.cookie
+*.fls
+*.blg
+
+# OS generated files #
+######################
+.DS_Store*
+ehthumbs.db
+Icon?
+Thumbs.db
