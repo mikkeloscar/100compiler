@@ -11,15 +11,17 @@ struct
 		| IntRef
 		| CharRef
 		
-
   fun convertType (S100.Int _) = Int
     | convertType (S100.Char _) = Char  
+
+  fun convertType2 (S100.Int _) = IntRef
+    | convertType2 (S100.Char _) = CharRef
 
   fun getName (S100.Val (f,p)) = f
     | getName (S100.Ref (f,p)) = f;
 
   fun getType t (S100.Val (f,p)) = convertType t
-    | getType t (S100.Ref (f,p)) = convertType t
+    | getType t (S100.Ref (f,p)) = convertType2 t
 
   (* lookup function for symbol table as list of (name,value) pairs *)
   fun lookup x []
