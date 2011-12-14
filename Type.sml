@@ -14,7 +14,10 @@ struct
   fun convertType (S100.Int _) = Int
     | convertType (S100.Char _) = Char  
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> origin/master
   fun convertType2 (S100.Int _) = IntRef
     | convertType2 (S100.Char _) = CharRef
 
