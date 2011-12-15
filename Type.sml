@@ -125,7 +125,7 @@ struct
     | S100.Block (d,s,p) =>
       let
 	   val stats = List.map (fn st => checkStat st vtable ftable) s
-	   val decs = checkDecs
+	   val decs = checkDecs d
       in
 	  () (* if function reaches this, all stats and decs in block are ok *)
       end
