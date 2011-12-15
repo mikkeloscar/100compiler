@@ -81,7 +81,7 @@ struct
       S100.Var (x,p) =>
         (case lookup x vtable of
 	   SOME t => t
-	 | NONE => raise Error ("Unknown variable: "^x,p))
+	 | NONE => raise Error ("Err: Unknown variable: "^x,p))
     | S100.Deref (x,p) =>
         (case lookup x vtable of
 	    SOME t => t
@@ -94,11 +94,11 @@ struct
   fun extend [] _ vtable = vtable (* raise Error ("sod",(1,1)) *)
     | extend (S100.Val (x,p)::sids) t vtable =
         (case lookup x vtable of
-	   NONE => extend sids t ((x,t)::vtable) (*raise Error ("dum"^x,p)*)
+	   NONE => extend sids t ((x,t)::vtable) (* raise Error ("dum"^x,p) *)
 	 | SOME _ => raise Error ("Double declaration of "^x,p))
     | extend (S100.Ref (x,p)::sids) t vtable =
         (case lookup x vtable of
-	   NONE => extend sids t ((x,t)::vtable) (* raise Error ("DD of "^x,p) *)
+	   NONE => extend sids t ((x,t)::vtable) (*raise Error ("hejsa",p)*)
 	 | SOME _ => raise Error ("Double declaration of "^x,p))
  
   fun checkDecs [] = []
@@ -122,14 +122,28 @@ struct
 	then checkStat s1 vtable ftable
 	else raise Error ("Condition should be integer",p)
     | S100.Return (e,p) => ()
-    | S100.Block (d,s,p) =>
+    | S100.Block (d,stats,p) =>
       let
-	   val stats = List.map (fn st => checkStat st vtable ftable) s
 	   val decs = checkDecs d
+	   val stats = List.map (fn st => checkStat st decs ftable) stats
       in
-	  () (* if function reaches this, all stats and decs in block are ok *)
+	   ()(* if function reaches this, all stats and decs in block are ok *)
       end
 
+
+
+(*
+  fun getSid [] vtable = vtable
+    | getSid g vtable =
+      case lookup (getName hd(g)) vtable of
+	  NONE => 
+	  let
+	      val t = getType(hd(g))
+	  in
+	      extend vtable
+	      getSid (tl(g)) vtable
+	  end *)
+	      
 
   fun checkFunDec (t,sf,decs,body,p) ftable =
         checkStat body (checkDecs decs) ftable
