@@ -81,7 +81,7 @@ struct
       S100.Var (x,p) =>
         (case lookup x vtable of
 	   SOME t => t
-	 | NONE => raise Error ("Err: Unknown variable: "^x,p))
+	 | NONE => raise Error ("Unknown variable: "^x,p))
     | S100.Deref (x,p) =>
         (case lookup x vtable of
 	    SOME t => t
@@ -91,14 +91,14 @@ struct
 	    SOME t => t
 	  | NONE => raise Error ("Unkown pointer: "^s,p))
 
-  fun extend [] _ vtable = vtable (* raise Error ("sod",(1,1)) *)
+  fun extend [] _ vtable = vtable
     | extend (S100.Val (x,p)::sids) t vtable =
         (case lookup x vtable of
-	   NONE => extend sids t ((x,t)::vtable) (* raise Error ("dum"^x,p) *)
+	   NONE => extend sids t ((x,t)::vtable)
 	 | SOME _ => raise Error ("Double declaration of "^x,p))
     | extend (S100.Ref (x,p)::sids) t vtable =
         (case lookup x vtable of
-	   NONE => extend sids t ((x,t)::vtable) (*raise Error ("hejsa",p)*)
+	   NONE => extend sids t ((x,t)::vtable)
 	 | SOME _ => raise Error ("Double declaration of "^x,p))
  
   fun checkDecs [] = []
@@ -129,21 +129,6 @@ struct
       in
 	   ()(* if function reaches this, all stats and decs in block are ok *)
       end
-
-
-
-(*
-  fun getSid [] vtable = vtable
-    | getSid g vtable =
-      case lookup (getName hd(g)) vtable of
-	  NONE => 
-	  let
-	      val t = getType(hd(g))
-	  in
-	      extend vtable
-	      getSid (tl(g)) vtable
-	  end *)
-	      
 
   fun checkFunDec (t,sf,decs,body,p) ftable =
         checkStat body (checkDecs decs) ftable
