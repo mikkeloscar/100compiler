@@ -36,44 +36,43 @@ fib:
 	sw	$16, 0($29)
 	ori	$16, $2, 0
 # was:	ori	n_4_, 2, 0
-# 	ori	m_5_,3,0
-# 	ori	_less1__9_,n_4_,0
+# 	ori	_less1__8_,n_4_,0
 	ori	$2, $0, 2
-# was:	ori	_less2__10_, 0, 2
+# was:	ori	_less2__9_, 0, 2
 	slt	$2, $16, $2
-# was:	slt	_if__6_, _less1__9_, _less2__10_
-	beq	$2, $0, _else__7_
-# was:	beq	_if__6_, 0, _else__7_
+# was:	slt	_if__5_, _less1__8_, _less2__9_
+	beq	$2, $0, _else__6_
+# was:	beq	_if__5_, 0, _else__6_
 	ori	$2, $16, 0
-# was:	ori	_return__11_, n_4_, 0
-# 	ori	2,_return__11_,0
+# was:	ori	_return__10_, n_4_, 0
+# 	ori	2,_return__10_,0
 	j	fib_exit
-	j	_endif__8_
-_else__7_:
-# 	ori	_minus1__16_,n_4_,0
+	j	_endif__7_
+_else__6_:
+# 	ori	_minus1__15_,n_4_,0
 	ori	$2, $0, 1
-# was:	ori	_minus2__17_, 0, 1
+# was:	ori	_minus2__16_, 0, 1
 	sub	$2, $16, $2
-# was:	sub	_exps__15_, _minus1__16_, _minus2__17_
-# 	ori	2,_exps__15_,0
+# was:	sub	_exps__14_, _minus1__15_, _minus2__16_
+# 	ori	2,_exps__14_,0
 	jal	fib
 # was:	jal	fib, 2
 	ori	$17, $2, 0
-# was:	ori	_plus1__13_, 2, 0
-# 	ori	_minus1__19_,n_4_,0
+# was:	ori	_plus1__12_, 2, 0
+# 	ori	_minus1__18_,n_4_,0
 	ori	$2, $0, 2
-# was:	ori	_minus2__20_, 0, 2
+# was:	ori	_minus2__19_, 0, 2
 	sub	$2, $16, $2
-# was:	sub	_exps__18_, _minus1__19_, _minus2__20_
-# 	ori	2,_exps__18_,0
+# was:	sub	_exps__17_, _minus1__18_, _minus2__19_
+# 	ori	2,_exps__17_,0
 	jal	fib
 # was:	jal	fib, 2
-# 	ori	_plus2__14_,2,0
+# 	ori	_plus2__13_,2,0
 	add	$2, $17, $2
-# was:	add	_return__12_, _plus1__13_, _plus2__14_
-# 	ori	2,_return__12_,0
+# was:	add	_return__11_, _plus1__12_, _plus2__13_
+# 	ori	2,_return__11_,0
 	j	fib_exit
-_endif__8_:
+_endif__7_:
 fib_exit:
 	lw	$18, 8($29)
 	lw	$17, 4($29)
@@ -81,6 +80,10 @@ fib_exit:
 	lw	$31, 12($29)
 	addi	$29, $29, 16
 	jr	$31
+walloc:
+balloc:
+getstring:
+putstring:
 putint:
 	addi	$29, $29, -8
 	sw	$2, 0($29)

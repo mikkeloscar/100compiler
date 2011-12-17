@@ -1,11 +1,8 @@
 /* Test 100 */
 
 int main(){
+char a;
 
-int a,c;
+a = "assssssss";
 
-a[8] = c;
-
-return c;
 }
-
