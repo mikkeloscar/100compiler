@@ -1,12 +1,13 @@
 /* Test 100 */
 
-int main(){
+int main()
 /* hejsa */
+{
+char d;
+int c;
 
-char *a;
-int b;
-int *c;
+c = 0;
+d = 'd';
 
-return a + b;
+return c;
 }
-
