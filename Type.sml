@@ -88,9 +88,9 @@ struct
 	  | NONE => raise Error ("Unknown pointer: "^x,p))
     | S100.Lookup (s,e,p) =>
         (case lookup s vtable of
-	    SOME t => if t = IntRef orelse t = CharRef
-                  then t
-                  else raise Error ("This is not a refrence: "^s,p)
+	    SOME t => (*if t = IntRef orelse t = CharRef
+                  then *) t
+                  (*else raise Error ("This is not a refrence: "^s,p)*)
 	  | NONE => raise Error ("Unkown pointer: "^s,p))
 
   fun extend [] _ vtable = vtable
@@ -105,7 +105,7 @@ struct
  
   fun checkDecs [] = []
     | checkDecs ((t,sids)::ds) =
-      extend (List.rev sids) (convertType t) (checkDecs ds)
+      extend (List.rev sids) t (checkDecs ds)
 
   fun checkStat s vtable ftable =
     case s of
