@@ -5,7 +5,7 @@ int main(){
 
 char *a;
 int b;
-int *c;
+b = 2;
 
 return a + b;
 }

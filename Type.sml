@@ -88,14 +88,16 @@ struct
 	  | NONE => raise Error ("Unknown pointer: "^x,p))
     | S100.Lookup (s,e,p) =>
         (case lookup s vtable of
-	    SOME t => t
+	    SOME t => if t = IntRef orelse t = CharRef
+                  then t
+                  else raise Error ("This is not a refrence: "^s,p)
 	  | NONE => raise Error ("Unkown pointer: "^s,p))
 
   fun extend [] _ vtable = vtable
     | extend (S100.Val (x,p)::sids) t vtable =
         (case lookup x vtable of
 	   NONE => extend sids t ((x,t)::vtable)
-	 | SOME _ => raise Error ("Double declaration of "^x,p))
+    | SOME _ => raise Error ("Double declaration of "^x,p))
     | extend (S100.Ref (x,p)::sids) t vtable =
         (case lookup x vtable of
 	   NONE => extend sids t ((x,t)::vtable)
@@ -113,21 +115,21 @@ struct
 	then checkStat s1 vtable ftable
 	else raise Error ("Condition should be integer",p)
     | S100.IfElse (e,s1,s2,p) =>
-        if checkExp e vtable ftable = Int
-	then (checkStat s1 vtable ftable;
+      if checkExp e vtable ftable = Int
+      then (checkStat s1 vtable ftable;
 	      checkStat s2 vtable ftable)
-	else raise Error ("Condition should be integer",p)
+      else raise Error ("Condition should be integer",p)
     | S100.While (e,s1,p) =>
         if checkExp e vtable ftable = Int
-	then checkStat s1 vtable ftable
-	else raise Error ("Condition should be integer",p)
-    | S100.Return (e,p) => ()
+	    then checkStat s1 vtable ftable
+	    else raise Error ("Condition should be integer",p)
+    | S100.Return (e,p) => (checkExp e vtable ftable;())
     | S100.Block (d,stats,p) =>
       let
 	   val decs = checkDecs d
 	   val stats = List.map (fn st => checkStat st decs ftable) stats
       in
-	   ()(* if function reaches this, all stats and decs in block are ok *)
+	   () (* if function reaches this, all stats and decs in block are ok *)
       end
 
   fun checkFunDec (t,sf,decs,body,p) ftable =
