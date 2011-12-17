@@ -1,0 +1,10 @@
+/* Test 100 */
+
+int main(){
+int *a;
+int c;
+
+
+c = a[2];
+
+}
