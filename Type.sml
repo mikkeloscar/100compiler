@@ -84,7 +84,7 @@ struct
 	 | NONE => raise Error ("Unknown variable: "^x,p))
     | S100.Deref (x,p) =>
         (case lookup x vtable of
-	    SOME t => t
+	    SOME t => if t = Int then IntRef else CharRef
 	  | NONE => raise Error ("Unknown pointer: "^x,p))
     | S100.Lookup (s,e,p) =>
         (case lookup s vtable of

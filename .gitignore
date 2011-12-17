@@ -3,6 +3,8 @@
 *.uo
 *.ui
 C100
+*~
+*.asm
 
 # tex files #
 #############
@@ -23,3 +25,7 @@ C100
 ehthumbs.db
 Icon?
 Thumbs.db
+
+# ignore test.100 #
+###################
+programs/test.100
