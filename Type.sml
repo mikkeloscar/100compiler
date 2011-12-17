@@ -15,14 +15,14 @@ struct
   fun convertType (S100.Int _) = Int
     | convertType (S100.Char _) = Char  
 
-  fun convertType2 (S100.Int _) = IntRef
-    | convertType2 (S100.Char _) = CharRef
+  fun convertTypeRef (S100.Int _) = IntRef
+    | convertTypeRef (S100.Char _) = CharRef
 
   fun getName (S100.Val (f,p)) = f
     | getName (S100.Ref (f,p)) = f;
 
   fun getType t (S100.Val (f,p)) = convertType t
-    | getType t (S100.Ref (f,p)) = convertType2 t
+    | getType t (S100.Ref (f,p)) = convertTypeRef t
 
   (* lookup function for symbol table as list of (name,value) pairs *)
   fun lookup x []
@@ -105,7 +105,7 @@ struct
     | SOME _ => raise Error ("Double declaration of "^x,p))
     | extend (S100.Ref (x,p)::sids) t vtable =
         (case lookup x vtable of
-	   NONE => extend sids t ((x,convertType2 t)::vtable)
+	   NONE => extend sids t ((x,convertTypeRef t)::vtable)
 	 | SOME _ => raise Error ("Double declaration of "^x,p))
  
   fun checkDecs [] = []
