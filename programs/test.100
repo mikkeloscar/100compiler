@@ -5,9 +5,10 @@ int main()
 {
 char d;
 int c;
+char *a;
+int b;
+b = 2;
 
-c = 0;
-d = 'd';
 
 return c;
 }
