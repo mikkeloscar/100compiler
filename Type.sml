@@ -8,9 +8,10 @@ struct
 
   datatype Type = Int
 	    | Char
-		| IntRef
-		| CharRef
+	    | IntRef
+	    | CharRef
 		
+
   fun convertType (S100.Int _) = Int
     | convertType (S100.Char _) = Char  
 
@@ -55,7 +56,6 @@ struct
         (case (checkExp e1 vtable ftable,
 	       checkExp e2 vtable ftable) of
 	   (Int, Int) => Int
-	 | (Int, IntRef) => raise Error ("Type mismatch in assignment",p)
 	 | (IntRef, Int) => Int
 	 | (IntRef, IntRef) => Int
 	 | (_,_) => raise Error ("Type mismatch in assignment",p))
@@ -123,7 +123,7 @@ struct
         if checkExp e vtable ftable = Int
 	    then checkStat s1 vtable ftable
 	    else raise Error ("Condition should be integer",p)
-    | S100.Return (e,p) => (checkExp e vtable ftable;())
+    | S100.Return (e,p) => (checkExp e vtable ftable; ())
     | S100.Block (d,stats,p) =>
       let
 	   val decs = checkDecs d
@@ -132,8 +132,19 @@ struct
 	   () (* if function reaches this, all stats and decs in block are ok *)
       end
 
+
   fun checkFunDec (t,sf,decs,body,p) ftable =
-        checkStat body (checkDecs decs) ftable
+      let  
+	  val vtable = checkDecs decs
+      in
+	  case body of 
+	      S100.Return (e,p) => 
+		  if convertType(t) = checkExp e vtable ftable
+		  then checkStat body vtable ftable
+		  else raise Error("Return type is not the same as function type",p)
+	    | _ => checkStat body vtable ftable
+      end
+      
 
   fun getFuns [] ftable = ftable
     | getFuns ((t,sf,decs,_,p)::fs) ftable =
