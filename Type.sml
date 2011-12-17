@@ -90,22 +90,22 @@ struct
         (case lookup s vtable of
 	    SOME t => if t = IntRef orelse t = CharRef
                   then t
-                  else raise Error ("This is not a refrence: "^s,p)
+                  else raise Error ("This is not a reference: "^s,p)
 	  | NONE => raise Error ("Unkown pointer: "^s,p))
 
   fun extend [] _ vtable = vtable
     | extend (S100.Val (x,p)::sids) t vtable =
         (case lookup x vtable of
-	   NONE => extend sids t ((x,t)::vtable)
+	   NONE => extend sids t ((x,convertType t)::vtable)
     | SOME _ => raise Error ("Double declaration of "^x,p))
     | extend (S100.Ref (x,p)::sids) t vtable =
         (case lookup x vtable of
-	   NONE => extend sids t ((x,t)::vtable)
+	   NONE => extend sids t ((x,convertType2 t)::vtable)
 	 | SOME _ => raise Error ("Double declaration of "^x,p))
  
   fun checkDecs [] = []
     | checkDecs ((t,sids)::ds) =
-      extend (List.rev sids) (convertType t) (checkDecs ds)
+      extend (List.rev sids) (t) (checkDecs ds)
 
   fun checkStat s vtable ftable =
     case s of
