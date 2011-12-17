@@ -1,10 +1,11 @@
 /* Test 100 */
 
 int main(){
-int *a;
-int c;
 
+int a,c;
 
-c = a[2];
+a[8] = c;
 
+return c;
 }
+

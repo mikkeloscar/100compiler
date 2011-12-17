@@ -3,7 +3,7 @@
 *.uo
 *.ui
 C100
-*~
+*.*~
 *.asm
 
 # tex files #
