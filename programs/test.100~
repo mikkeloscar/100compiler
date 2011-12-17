@@ -1,19 +1,10 @@
 /* Test 100 */
 
-int main()
-/* hejsa */
-{
-char d;
+int main(){
+int a;
 int c;
 
-<<<<<<< HEAD
-c = 0;
-d = 'd';
-=======
-char *a;
-int b;
-b = 2;
->>>>>>> origin/master
 
-return c;
+c = a[2];
+
 }

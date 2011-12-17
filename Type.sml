@@ -137,12 +137,22 @@ struct
       let  
 	  val vtable = checkDecs decs
       in
+
+	      
 	  case body of 
 	      S100.Return (e,p) => 
-		  if convertType(t) = checkExp e vtable ftable
+
+	      if getType t sf = checkExp e vtable ftable
 		  then checkStat body vtable ftable
-		  else raise Error("Return type is not the same as function type",p)
+	      else raise Error("Return type is not the same as function type",p)
+	    | S100.Block (d,s,p) => 
+	      let
+		  val foreach = List.map (fn ch => checkFunDec (t,sf,d,ch,p) ftable) s
+	      in
+		  ()
+	      end
 	    | _ => checkStat body vtable ftable
+		   
       end
       
 
