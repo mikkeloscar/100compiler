@@ -1,8 +1,19 @@
 /* Test 100 */
 
 int main(){
-char a;
 
-a = "assssssss";
+int a,b,c,d;
+
+if(0){
+	if(1){
+		return 1;
+	}
+	else{
+
+	}
+}
+else
+if(0)
+return 0;
 
 }
