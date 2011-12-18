@@ -178,18 +178,80 @@ struct
 	   () (* if function reaches this, all stats and decs in block are ok *)
       end
 
+  fun printlist [] = "$"
+    | printlist [x] = if x then " 1 " else " 0 "
+    | printlist (x::xs) = if x then " 1 " ^ printlist (xs) else " 0 " ^ printlist (xs)
+
+      
+   fun containsRealReturn(s) = 
+      let
+	  fun exists [] = false
+	    | exists [x] = x
+	    | exists (x::xs) = x orelse exists xs
+
+      in
+   	  case s of
+	      S100.Return _ => true
+	    | S100.Block (d,se,p) =>
+	      let
+		  val returnlist = (map containsRealReturn se)
+	      in
+		  exists returnlist
+	      end
+
+	    | S100.IfElse (e, st1,st2,p) =>
+	      (case (st1,st2) of
+		   (S100.Block (d,s,p), S100.Block (d2,s2,p2)) =>
+		   let
+		       val return1 = (map containsRealReturn s)
+		       val return2 = (map containsRealReturn s2)
+		   in
+		       exists return1 andalso exists return2
+		   end
+
+		 | (S100.Block (d,s,p), S100.Return _) => 
+		   let
+		       val returnlist = (map containsRealReturn s)
+		   in
+		       exists returnlist
+		   end						  
+		 | (S100.Block (d,s,_), S100.IfElse (e,s1,s2,_)) =>
+		   let
+		       val returnlist = (map containsRealReturn s)
+		   in
+		       if exists returnlist andalso (containsRealReturn(s1) andalso containsRealReturn (s2))then true else false
+		   end
+		 | (S100.Block (d,s,p), _) => false
+		 | (S100.Return _, S100.Block (d,s,p)) => 
+		   let
+		       val returnlist = (map containsRealReturn s)
+		   in
+		       if exists returnlist then true else false
+		   end
+		 | (S100.IfElse (e,s1,s2,_), S100.Block (d,s,_)) =>
+		   let
+		       val returnlist = (map containsRealReturn s)
+		   in
+		      exists returnlist andalso (containsRealReturn(s1) andalso containsRealReturn (s2))
+		   end
+		 | (_, S100.Block (d,s,p)) => false
+		 | (S100.Return _, S100.Return _) => true
+		 | (_,_) => false)
+	      
+	    | _ => false
+      end
 
   fun checkFunDec(t,sf,decs,body,p) ftable =
-      let  
+      let
+
 	  val vtable = checkDecs decs
-	  val numReturns = []
       in
 	  case body of 
 	      S100.Return (e,p) => 
-
+		  
 	      if getType t sf = checkExp e vtable ftable
-		  then checkStat body vtable ftable
-	      else raise Error("Return type is not the same as function type",p)
+	      then checkStat body vtable ftable
+	      else raise Error("Returning type is not the same as the declared type",p)
 	    | S100.Block (d,s,p) => 
 	      let
 		  val foreach = List.map (fn ch => checkFunDec (t,sf,d@decs,ch,p) ftable) s
@@ -197,10 +259,10 @@ struct
 		  ()
 	      end
 	    | _ => checkStat body vtable ftable
-		   
-      end
-      
+ 
+end
 
+      
   fun getFuns [] ftable = ftable
     | getFuns ((t,sf,decs,_,p)::fs) ftable =
         case lookup (getName sf) ftable of
@@ -222,8 +284,13 @@ struct
                    ("getstring",([Int],CharRef)),(* getstring har ikke korrekt
                                                 returtype endnu, kun for at teste *)
                    ("putstring",([CharRef],CharRef))] (* korrekt type? *) 
+
+      fun contain (_,_,_,b,p) = if (containsRealReturn b) then () else raise Error("No return statement in all paths",p)
     in
-      List.app (fn f => checkFunDec f ftable) fs;
+	List.app (fn f => checkFunDec f ftable) fs;
+	List.app (fn f => contain f) fs;
+
+
       case lookup "main" ftable of
 	NONE => raise Error ("No main function found",(0,0))
       | SOME ([],Int) => ()
