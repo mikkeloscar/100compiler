@@ -737,8 +737,8 @@ SLEEP		?= sleep
 # == LaTeX (tetex-provided) ==
 BIBTEX		?= bibtex
 DVIPS		?= dvips
-LATEX		?= latex
-PDFLATEX	?= pdflatex
+LATEX		?= latex 
+PDFLATEX	?= pdflatex -shell-escape
 XELATEX		?= xelatex
 EPSTOPDF	?= epstopdf
 MAKEINDEX	?= makeindex
