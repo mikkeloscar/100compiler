@@ -272,9 +272,9 @@ and moveArgs1 [] t ds r = moveArgs ds r
            val l1 = "_block_"^newName()
            (* val (_,decs) = compileExp e vtable ftable l1 *)
 	  
-	  val (parcode,vtable,stackParams) (* move parameters to arguments *)
+	  val (parcode,d_vtable,stackParams) (* move parameters to arguments *)
             = moveArgs d 2
-           val statlist = List.map (fn st => compileStat st vtable ftable
+           val statlist = List.map (fn st => compileStat st (d_vtable @ vtable) ftable
            exitLabel) s
           val stats = foldl (fn (x,y) => y @ x) (hd statlist) (tl statlist)
           val (stats1, _, maxr,spilled)  (* call register allocator *)
