@@ -4,6 +4,7 @@
 structure Compiler :> Compiler =
 struct
 
+
   (* Use "raise Error (message,position)" for error messages *)
   exception Error of string*(int*int)
 
@@ -35,6 +36,32 @@ struct
   (* Suggested register division *)
   val maxCaller = 15   (* highest caller-saves register *)
   val maxReg = 24      (* highest allocatable register *)
+
+(* handle declarations and function arguments *)
+fun moveArgs [] r = ([], [], 0)
+  | moveArgs ((t,ss)::ds) r =
+      moveArgs1 ss (Type.convertType t) ds r
+and moveArgs1 [] t ds r = moveArgs ds r
+  | moveArgs1 (s::ss) t ds r =
+    let
+       val y = newName ()
+       val (x,ty,loc) = (case s of
+                   S100.Val (x,p) => (x, t, x^y)
+                 | S100.Ref (x,p) => (x, t, x^y))
+       val rname = Int.toString r
+       val (code, vtable, stackSpace) = moveArgs1 ss t ds (r+1)
+    in
+     if r<=maxCaller then
+       (Mips.MOVE (loc, rname) :: code,
+        (x,(ty,loc)) :: vtable,
+        stackSpace)
+     else
+       (Mips.LW (loc, FP, makeConst stackSpace) :: code,
+        (x,(ty,loc)) :: vtable,
+        stackSpace + 4)
+    end
+
+
 
   datatype Location = Reg of string (* value is in register *)
 
@@ -159,25 +186,80 @@ struct
       S100.EX e => #2 (compileExp e vtable ftable "0")
     | S100.If (e,s1,p) =>
         let
-	  val t = "_if_"^newName()
-	  val l1 = "_endif_"^newName()
-	  val (_,code0) = compileExp e vtable ftable t
-	  val code1 = compileStat s1 vtable ftable exitLabel
-	in
-	  code0 @ [Mips.BEQ (t,"0",l1)] @ code1 @ [Mips.LABEL l1]
-	end
+          val t = "_if_"^newName()
+          val l1 = "_endif_"^newName()
+        in
+          case s1 of
+            S100.Block (d,s,p) =>
+             let 
+                val (_,code0) = compileExp e vtable ftable t
+                val statlist = List.map
+                    (fn st => compileStat st vtable ftable exitLabel) s
+                val code1 = foldl (fn (x,y) => y @ x) (hd statlist) (tl statlist)
+             in
+                  code0 @ [Mips.BEQ (t,"0",l1)] @ code1 @ [Mips.LABEL l1]
+             end
+          | _ =>
+             let 
+                val (_,code0) = compileExp e vtable ftable t
+                val code1 = compileStat s1 vtable ftable exitLabel
+             in
+                  code0 @ [Mips.BEQ (t,"0",l1)] @ code1 @ [Mips.LABEL l1]
+             end
+
+        end
     | S100.IfElse (e,s1,s2,p) =>
         let
-	  val t = "_if_"^newName()
-	  val l1 = "_else_"^newName()
-	  val l2 = "_endif_"^newName()
-	  val (_,code0) = compileExp e vtable ftable t
-	  val code1 = compileStat s1 vtable ftable exitLabel
-	  val code2 = compileStat s2 vtable ftable exitLabel
-	in
-	  code0 @ [Mips.BEQ (t,"0",l1)] @ code1
-	  @ [Mips.J l2, Mips.LABEL l1] @ code2 @ [Mips.LABEL l2]
-	end
+          val t = "_if_"^newName()
+          val l1 = "_else_"^newName()
+          val l2 = "_endif_"^newName()
+          val (_,code0) = compileExp e vtable ftable t
+        in  
+          case (s1,s2) of
+            (S100.Block (_,s1,_), S100.Block (_,s2,_)) =>
+              let
+                val statlist = List.map
+                        (fn st => compileStat st vtable ftable exitLabel) s1
+                val code1 = foldl (fn (x,y) => y @ x) (hd statlist) (tl statlist)
+                val statlist2 = List.map
+                        (fn st => compileStat st vtable ftable exitLabel) s2
+                val code2 = foldl (fn (x,y) => y @ x) (hd statlist2) (tl statlist2)
+                (* val code1 = compileStat s1 vtable ftable exitLabel *)
+                (* val code2 = compileStat s2 vtable ftable exitLabel *)
+              in
+                code0 @ [Mips.BEQ (t,"0",l1)] @ code1
+                @ [Mips.J l2, Mips.LABEL l1] @ code2 @ [Mips.LABEL l2]
+              end
+
+          | (S100.Block (_,s,_),_) =>
+              let
+                val statlist = List.map
+                        (fn st => compileStat st vtable ftable exitLabel) s
+                val code1 = foldl (fn (x,y) => y @ x) (hd statlist) (tl statlist)
+                val code2 = compileStat s2 vtable ftable exitLabel
+              in
+                code0 @ [Mips.BEQ (t,"0",l1)] @ code1
+                @ [Mips.J l2, Mips.LABEL l1] @ code2 @ [Mips.LABEL l2]
+              end
+          | (_,S100.Block (_,s,_)) =>
+              let
+                val code1 = compileStat s1 vtable ftable exitLabel
+                val statlist = List.map
+                        (fn st => compileStat st vtable ftable exitLabel) s
+                val code2 = foldl (fn (x,y) => y @ x) (hd statlist) (tl statlist)
+              in
+                code0 @ [Mips.BEQ (t,"0",l1)] @ code1
+                @ [Mips.J l2, Mips.LABEL l1] @ code2 @ [Mips.LABEL l2]
+              end
+          | _ =>
+              let
+                val code1 = compileStat s1 vtable ftable exitLabel
+                val code2 = compileStat s2 vtable ftable exitLabel
+              in
+                code0 @ [Mips.BEQ (t,"0",l1)] @ code1
+                @ [Mips.J l2, Mips.LABEL l1] @ code2 @ [Mips.LABEL l2]
+              end
+         end
     | S100.Return (e,p) =>
         let
 	  val t = "_return_"^newName()
@@ -185,9 +267,47 @@ struct
 	in
 	  code0 @ [Mips.MOVE ("2",t), Mips.J exitLabel]
 	end
-    | S100.Block (e,s,p) => [Mips.MOVE ("2","tis"), Mips.J "exit"] (* fjern tis
-    *)
-    | S100.While (e,s,p) => []
+    | S100.Block (d,s,p) => 
+        let
+           val l1 = "_block_"^newName()
+           (* val (_,decs) = compileExp e vtable ftable l1 *)
+	  
+	  val (parcode,vtable,stackParams) (* move parameters to arguments *)
+            = moveArgs d 2
+           val statlist = List.map (fn st => compileStat st vtable ftable
+           exitLabel) s
+          val stats = foldl (fn (x,y) => y @ x) (hd statlist) (tl statlist)
+          val (stats1, _, maxr,spilled)  (* call register allocator *)
+            = RegAlloc.registerAlloc
+                (parcode @ stats) [] 2 maxCaller maxReg 0
+        in
+          stats1
+        end
+
+    | S100.While (e,s,p) => 
+        let
+            val l1 = "_while_"^newName()
+            val l2 = "_endwhile_"^newName()
+            val (_,code0) = compileExp e vtable ftable l1
+        in
+            case s of
+              S100.Block (d,s,p) => 
+              let
+                val statlist = List.map
+                      (fn st => compileStat st vtable ftable exitLabel) s
+                val code1 = foldl (fn (x,y) => y @ x) (hd statlist) (tl statlist)
+              in
+                [Mips.LABEL l1] @ code0 @ [Mips.BEQ (l1,"0",l2)] @
+                code1 @ [Mips.J l1] @ [Mips.LABEL l2]
+              end
+            | _ =>
+              let 
+                val code1 = compileStat s vtable ftable exitLabel
+              in
+                [Mips.LABEL l1] @ code0 @ [Mips.BEQ (l1,"0",l2)] @
+                code1 @ [Mips.J l1] @ [Mips.LABEL l2]
+              end
+        end
 
   (* code for saving and restoring callee-saves registers *)
   fun stackSave currentReg maxReg savecode restorecode offset =
@@ -204,7 +324,6 @@ struct
                                  makeConst offset)
                     :: restorecode) (* restore register *)
                    (offset+4) (* adjust offset *)
-
 
   (* compile function declaration *)
   and compileFun ftable (typ, sf, args, body, (line,col)) =
