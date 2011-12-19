@@ -4,7 +4,7 @@ struct
   (* types for abstract syntax for 100 *)
 
   type pos = int * int  (* position: (line, column) *)
-
+	     
   datatype Type
     = Int of pos
     | Char of pos
@@ -40,9 +40,8 @@ struct
     | Return of Exp * pos
     | Block of Dec list * Stat list * pos
 
-
   type FunDec = Type * Sid * Dec list * Stat * pos
 
   type Prog = FunDec list
-
+	      
 end
