@@ -18,6 +18,8 @@ C100
 *.cookie
 *.fls
 *.blg
+*.toc
+*.temp
 
 # OS generated files #
 ######################
