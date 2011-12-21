@@ -77,13 +77,13 @@ struct
 	  val (code,ty,loc) = compileLval lval vtable ftable
 	in
 	  case (ty,loc) of
-	    (Type.Int, Reg x) =>
+	      (Type.Int, Reg x) =>
 	      (Type.Int,
 	       code @ [Mips.MOVE (place,x)])
-      | (Type.Int, Mem x) =>
-          (Type.Int,
-           code @ [Mips.LW (place,x,"0")])
-      | _ => raise Error("LV not implemented",(0,0))
+	    | (Type.Int, Mem x) =>
+              (Type.Int,
+               code @ [Mips.LW (place,x,"0")])
+	    | _ => raise Error("LV not implemented",(0,0))
 	end
     | S100.Assign (lval,e,p) =>
         let
@@ -95,10 +95,10 @@ struct
 	      (Type.Int, Reg x) =>
 	      (Type.Int,
 	       code0 @ code1 @ [Mips.MOVE (x,t), Mips.MOVE (place,t)])
-      |   (Type.Int, Mem x) =>
-          (Type.Int,
-           code0 @ code1 @ [Mips.SW (x,t,"0")])
-	  | _ => raise Error("Not assignable",p)
+	    |   (Type.Int, Mem x) =>
+		(Type.Int,
+		 code0 @ code1 @ [Mips.SW (t,x,"0")])
+	    | _ => raise Error("Not assignable",p)
     end
     | S100.Plus (e1,e2,pos) =>
         let
@@ -193,13 +193,13 @@ struct
         (case lookup x vtable of
            SOME (ty,y) => 
              let
+               
                val t = "_index1_"^newName()
                val result = "_index2_"^newName()
                val code1 = #2 (compileExp e vtable ftable t)
-               val code2 = code1 @ [Mips.SLL (t,t,"2"), Mips.ADD (t,t,y),
-               Mips.LW(result,t,"0")]
+               val code2 = code1 @ [Mips.SLL (t,t,"2"), Mips.ADD (t,t,y)]
              in
-               (code2, ty, Mem y)
+               (code2, ty, Mem t)
              end
          | NONE => raise Error ("Unknown index "^x,p))
          
@@ -421,12 +421,21 @@ struct
 
       @ [
      Mips.LABEL "walloc", (* walloc not implemented *)
+
+     Mips.SLL("2","2","2"),
+     Mips.ADDI("4","2","0"),
+
+
      Mips.LI("2","9"),
      Mips.SYSCALL,
-	 Mips.ADD(HP,HP,"2"),
+
+
+
      Mips.JR (RA,[]),
-     
-     
+
+
+
+    
      Mips.LABEL "balloc", (* balloc not implemented *)
      Mips.LABEL "getstring", (* getstring not implemented *)
      Mips.LABEL "putstring", (* putstring not implemented *)
