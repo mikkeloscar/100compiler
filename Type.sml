@@ -58,16 +58,18 @@ struct
        (case (checkExp e1 vtable ftable,
             checkExp e2 vtable ftable) of
          (Int,Int) => Int
-       | (Int,Ref) => Ref
-       | (Ref,Int) => Ref
+       | (Int,IntRef) => IntRef
+       | (Int,CharRef) => CharRef
        | (_,_) => raise Error ("Type mismatch in assignment",p))
 
      | S100.Minus (e1,e2,p) =>
        (case (checkExp e1 vtable ftable,
 	      checkExp e2 vtable ftable) of
-	 (Int, Int) => Int
+         (Int, Int) => Int
        | (IntRef, Int) => Int
        | (IntRef, IntRef) => Int
+       | (CharRef, Int) => CharRef
+       | (CharRef, CharRef) => Int
        | (_,_) => raise Error ("Type mismatch in assignment",p))
      | S100.Less (e1,e2,p) =>
        if checkExp e1 vtable ftable = checkExp e2 vtable ftable
