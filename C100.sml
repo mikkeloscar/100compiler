@@ -42,13 +42,6 @@ struct
                      errorMess ("Type error: " ^mess^ " at line "
                       ^ makestring lin ^ ", column " ^ makestring col)
                | SysErr (s,_) => errorMess ("Exception: " ^ s)
-	       | _ => 
-		 let val (lin,col) = Lexer.getPos lexbuf
-                 in
-                     errorMess ("Unknown Error at line "
-				^ makestring lin ^ ", column " ^ makestring col)
-                 end
-               
   end             
   val _ = compile (List.nth(Mosml.argv (),1))
 

@@ -60,6 +60,7 @@ struct
       end
 
   datatype Location = Reg of string (* value is in register *)
+                    | Mem of string
 
   (* compile expression *)
   fun compileExp e vtable ftable place =
@@ -79,6 +80,10 @@ struct
 	    (Type.Int, Reg x) =>
 	      (Type.Int,
 	       code @ [Mips.MOVE (place,x)])
+      | (Type.Int, Mem x) =>
+          (Type.Int,
+           code @ [Mips.LW (place,x,"0")])
+      | _ => raise Error("LV not implemented",(0,0))
 	end
     | S100.Assign (lval,e,p) =>
         let
@@ -87,10 +92,14 @@ struct
 	  val (_,code1) = compileExp e vtable ftable t
 	in
 	  case (ty,loc) of
-	    (Type.Int, Reg x) =>
+	      (Type.Int, Reg x) =>
 	      (Type.Int,
 	       code0 @ code1 @ [Mips.MOVE (x,t), Mips.MOVE (place,t)])
-	end
+      |   (Type.Int, Mem x) =>
+          (Type.Int,
+           code0 @ code1 @ [Mips.SW (x,t,"0")])
+	  | _ => raise Error("Not assignable",p)
+    end
     | S100.Plus (e1,e2,pos) =>
         let
 	  val t1 = "_plus1_"^newName()
@@ -176,9 +185,24 @@ struct
         (case lookup x vtable of
 	      SOME (ty,y) => ([],ty,Reg y)
 	    | NONE => raise Error ("Unknown variable "^x,p))
-    (* | S100.Deref (x,p) => (x,p) *)
-    (* | S100.Index (x,e,p) =>  *)
-
+    | S100.Deref (x,p) =>
+        (case lookup x vtable of
+          SOME (ty,y) => ([],ty,Mem y)
+        | NONE => raise Error("Unkown reference "^x,p))
+    | S100.Index (x,e,p) => 
+        (case lookup x vtable of
+           SOME (ty,y) => 
+             let
+               val t = "_index1_"^newName()
+               val result = "_index2_"^newName()
+               val code1 = #2 (compileExp e vtable ftable t)
+               val code2 = code1 @ [Mips.SLL (t,t,"2"), Mips.ADD (t,t,y),
+               Mips.LW(result,t,"0")]
+             in
+               (code2, ty, Mem y)
+             end
+         | NONE => raise Error ("Unknown index "^x,p))
+         
 
   fun compileStat s vtable ftable exitLabel =
     case s of
@@ -382,8 +406,9 @@ struct
   fun compile funs =
     let
       val ftable =
-	  Type.getFuns funs [("getint",([],Type.Int)),
-			     ("putint",([Type.Int],Type.Int))]
+	  Type.getFuns funs [("walloc",([Type.Int],Type.IntRef)),
+                         ("getint",([],Type.Int)),
+			             ("putint",([Type.Int],Type.Int))]
       val funsCode = List.concat (List.map (compileFun ftable) funs)
     in
       [Mips.TEXT "0x00400000",
@@ -396,6 +421,12 @@ struct
 
       @ [
      Mips.LABEL "walloc", (* walloc not implemented *)
+     Mips.LI("2","9"),
+     Mips.SYSCALL,
+	 Mips.ADD(HP,HP,"2"),
+     Mips.JR (RA,[]),
+     
+     
      Mips.LABEL "balloc", (* balloc not implemented *)
      Mips.LABEL "getstring", (* getstring not implemented *)
      Mips.LABEL "putstring", (* putstring not implemented *)
