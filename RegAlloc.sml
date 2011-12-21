@@ -257,7 +257,7 @@ fun sortByOrder [] = []
                in (rev2 l g3, g2) end
          and ascending a [] l = (a::l,[])
            | ascending a (g as (b::g1)) l =
-	       if be4 b a
+	       if be4 a b
                then ascending b g1 (a::l)
                else (a::l,g)
          and rev2 [] l2 = l2
