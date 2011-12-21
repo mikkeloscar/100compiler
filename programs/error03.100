@@ -1,9 +1,9 @@
 /* error03.100 */
-/* No main function */
+/* No main function - getchar() is replaced with getint() */
 
 int g()
 {
-  f(getchar());
+  f(getint());
   return 0;
 }
 

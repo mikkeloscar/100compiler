@@ -112,7 +112,7 @@ struct
                code0 @ code1 @ [Mips.MOVE (x,t), Mips.MOVE (place,t)])
           | (Type.Int, Mem x) =>
               (Type.Int,
-               code0 @ code1 @ [Mips.SW (x,t,"0")])
+		       code0 @ code1 @ [Mips.SW (t,x,"0")])
           | (Type.Char, Reg x) =>
               (Type.Char,
                code0 @ code1 @ [Mips.MOVE (x,t), Mips.MOVE (place,t)])
@@ -211,13 +211,13 @@ struct
         (case lookup x vtable of
            SOME (ty,y) => 
              let
+               
                val t = "_index1_"^newName()
                val result = "_index2_"^newName()
                val code1 = #2 (compileExp e vtable ftable t)
-               val code2 = code1 @ [Mips.SLL (t,t,"2"), Mips.ADD (t,t,y),
-               Mips.LW(result,t,"0")]
+               val code2 = code1 @ [Mips.SLL (t,t,"2"), Mips.ADD (t,t,y)]
              in
-               (code2, ty, Mem y)
+               (code2, ty, Mem t)
              end
          | NONE => raise Error ("Unknown index "^x,p))
          
@@ -425,8 +425,9 @@ struct
     let
       val ftable =
 	  Type.getFuns funs [("walloc",([Type.Int],Type.IntRef)),
-                         ("getint",([],Type.Int)),
-			             ("putint",([Type.Int],Type.Int))]
+			     ("balloc",([Type.Int],Type.CharRef)),
+                             ("getint",([],Type.Int)),
+			     ("putint",([Type.Int],Type.Int))]
       val funsCode = List.concat (List.map (compileFun ftable) funs)
     in
       [Mips.TEXT "0x00400000",
@@ -439,20 +440,25 @@ struct
 
       @ [
      Mips.LABEL "walloc", (* walloc not implemented *)
-     Mips.LI("2","9"),
-     Mips.SYSCALL,
-	 Mips.ADD(HP,HP,"2"),
+
+     Mips.SLL("2","2","2"), (* mult by 2 *)
+     Mips.ADDI("4","2","0"), (* add parameter to input *)
+     Mips.LI("2","9"), (* syscall sbrk *)
+     Mips.SYSCALL, (* execute *)
      Mips.JR (RA,[]),
-     
-     
+
      Mips.LABEL "balloc", (* balloc not implemented *)
+     Mips.ADDI("4","2","0"), (* add parameter to input *)
+     Mips.LI("2","9"), (* syscall sbrk *)
+     Mips.SYSCALL, (* execute *)
+     Mips.JR (RA,[]),
+
+
      Mips.LABEL "getstring", (* getstring not implemented *)
      
      Mips.LABEL "putstring", (* putstring not implemented *)
      (* Mips. *)
      (* Mips.SYSCALL, *)
-
-      
       
      Mips.LABEL "putint",     (* putint function *)
 	 Mips.ADDI(SP,SP,"-8"),
