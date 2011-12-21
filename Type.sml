@@ -95,7 +95,7 @@ struct
 	    SOME t => if t = Int then IntRef else CharRef
 	  | NONE => raise Error ("Unknown pointer: "^x,p))
      (* checks if lookup is made on reference, and raises error if not *)
-     | S100.Lookup (s,e,p) =>
+     | S100.Index (s,e,p) =>
        (case lookup s vtable of
 	 SOME t => if t = IntRef orelse t = CharRef
                    then if t = IntRef then Int else Char
