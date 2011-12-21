@@ -90,10 +90,12 @@ struct
         in 
           (* Use balloc to allocate space *)
           (Type.CharRef,
-            [Mips.ADDI ("2","0",Int.toString(size)),
+            [Mips.ADDI ("2","0",Int.toString(size+1)), (* nullbyte fix *)
              Mips.JAL ("balloc",[]), 
              Mips.ADDI (place, "2", "0")] @
-             saveMem (explode(s)))              
+             saveMem (explode(s)) @ [Mips.ADDI ("2","2","4"),
+                                     Mips.ADDI (t, "0", "0"),
+                                     Mips.SW (t,"2","0")])              
                    
         end
     | S100.LV lval =>
