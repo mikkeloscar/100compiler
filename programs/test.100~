@@ -1,19 +1,20 @@
 /* Test 100 */
 
-int main(){
+int main()
+{
 
-int a,b,c,d;
+int a;
+a = 0;
 
-if(0){
+
 	if(1){
-		return 1;
+	int a;
+		{a = 1;	}
 	}
-	else{
 
-	}
-}
-else
-if(0)
-return 0;
+
+
+return putint(a);
 
 }
+
