@@ -444,9 +444,11 @@ struct
     let
       val ftable =
 	  Type.getFuns funs [("walloc",([Type.Int],Type.IntRef)),
-                     ("balloc",([Type.Int],Type.CharRef)),
+			     ("balloc",([Type.Int],Type.CharRef)),
                              ("getint",([],Type.Int)),
-			     ("putint",([Type.Int],Type.Int))]
+			     ("putint",([Type.Int],Type.Int)),
+		             ("putstring",([Type.CharRef],Type.CharRef))]
+
       val funsCode = List.concat (List.map (compileFun ftable) funs)
     in
       [Mips.TEXT "0x00400000",
@@ -477,11 +479,33 @@ struct
      Mips.LABEL "getstring", (* getstring not implemented *)
      
      Mips.LABEL "putstring", (* putstring not implemented *)
-     (* Mips. *)
-     (* Mips.SYSCALL, *)
-      
+
+     Mips.ADDI(SP,SP,"-8"),
+     Mips.SW ("2",SP,"0"),    (* save used registers *)
+     Mips.SW ("4",SP,"4"),
+     Mips.MOVE ("4","2"),
+
+        Mips.LABEL "put_char_loop",
+          Mips.LI ("2","4"),       (* print reg 2 *)
+          Mips.SYSCALL,            (* write  *)
+          Mips.LW("7","4","0"),    (* load the adress in to reg 7 *)
+          Mips.ADDI("4","4","4"),   (* increment *)
+     
+     Mips.BNE("7","0","put_char_loop"), (* if reg 7 = 0 end, else print next word *)
+     
+         Mips.LI ("2","4"),       (* write new line syscall *)
+         Mips.LA("4","_cr_"),
+         Mips.SYSCALL,            (* write CR *)
+
+	 Mips.LW ("2",SP,"0"),    (* reload used registers *)
+	 Mips.LW ("4",SP,"4"),
+	 Mips.ADDI(SP,SP,"8"),
+
+
+     Mips.JR (RA,[]), (* end putstring *)
+         
      Mips.LABEL "putint",     (* putint function *)
-	 Mips.ADDI(SP,SP,"-8"),
+         Mips.ADDI(SP,SP,"-8"),
 	 Mips.SW ("2",SP,"0"),    (* save used registers *)
 	 Mips.SW ("4",SP,"4"),
 	 Mips.MOVE ("4","2"),
