@@ -189,7 +189,7 @@ struct
      end
     
   (* checks if statement contains return statement in all paths *)
-  fun containsRealReturn(s) = 
+  fun checkReturn(s) = 
       let
 	  (* checks if a boolean-list contains a 'true' *)
 	  fun exists [] = false
@@ -201,7 +201,7 @@ struct
 	 | S100.Block (d,se,p) =>
 	   let
 	       (* create a list of returnchecked statements and check if a return exists here *)
-	       val returnlist = (map containsRealReturn se)
+	       val returnlist = (map checkReturn se)
 	   in
 	       exists returnlist
 	   end
@@ -211,35 +211,35 @@ struct
 	      (case (st1,st2) of
 		(S100.Block (d,s,p), S100.Block (d2,s2,p2)) =>
 		let
-		    val return1 = (map containsRealReturn s)
-		    val return2 = (map containsRealReturn s2)
+		    val return1 = (map checkReturn s)
+		    val return2 = (map checkReturn s2)
 		in
 		    exists return1 andalso exists return2
 		end
 	      | (S100.Block (d,s,p), S100.Return _) => 
 		let
-		    val returnlist = (map containsRealReturn s)
+		    val returnlist = (map checkReturn s)
 		in
 		    exists returnlist
 		end						  
 	      | (S100.Block (d,s,_), S100.IfElse (e,s1,s2,_)) =>
 		let
-		    val returnlist = (map containsRealReturn s)
+		    val returnlist = (map checkReturn s)
 		in
-		    if exists returnlist andalso (containsRealReturn(s1) andalso containsRealReturn (s2))then true else false
+		    if exists returnlist andalso (checkReturn(s1) andalso checkReturn (s2))then true else false
 		end
 	      | (S100.Block (d,s,p), _) => false
 	      | (S100.Return _, S100.Block (d,s,p)) => 
 		let
-		    val returnlist = (map containsRealReturn s)
+		    val returnlist = (map checkReturn s)
 		in
 		    if exists returnlist then true else false
 		end
 	      | (S100.IfElse (e,s1,s2,_), S100.Block (d,s,_)) =>
 		let
-		    val returnlist = (map containsRealReturn s)
+		    val returnlist = (map checkReturn s)
 		in
-		    exists returnlist andalso (containsRealReturn(s1) andalso containsRealReturn (s2))
+		    exists returnlist andalso (checkReturn(s1) andalso checkReturn (s2))
 		end
 	      | (_, S100.Block (d,s,p)) => false
 	      | (S100.Return _, S100.Return _) => true
@@ -289,7 +289,7 @@ struct
 				   ("getstring",([Int],CharRef)),
 				   ("putstring",([CharRef],CharRef))]
 	  (* checks if return exists in function *)
-	  fun contain (_,_,_,b,p) = if (containsRealReturn b) then () else raise Error("No return statement in all paths",p)
+	  fun contain (_,_,_,b,p) = if (checkReturn b) then () else raise Error("No return statement in all paths",p)
       in
 	  List.app (fn f => checkFunDec f ftable) fs;
 	  List.app (fn f => contain f) fs;

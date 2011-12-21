@@ -89,7 +89,7 @@ struct
                                    Mips.ADDI ("2", "2", "4")] @ saveMem cs
         in 
           (* Use balloc to allocate space *)
-          (Type.CharRef, (* [] ) *)
+          (Type.CharRef,
             [Mips.ADDI ("2","0",Int.toString(size)),
              Mips.JAL ("balloc",[]), 
              Mips.ADDI (place, "2", "0")] @
