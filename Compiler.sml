@@ -77,10 +77,25 @@ struct
 	   Mips.ORI (place, place, makeConst (n mod 65536))])
     | S100.CharConst (c,pos) =>
       (Type.Char,[Mips.LI (place, makeConstChar c)])
-    | S100.StringConst (s,pos) => 
-      (Type.CharRef, [])
-      (* Not implemented *)
-
+    | S100.StringConst (s,pos) =>
+        let
+            val size = String.size(s)
+            val t = "_string_"^newName()
+            fun saveMem [] = []
+              | saveMem [c] = [Mips.ADDI (t,"0", makeConstChar c),
+                               Mips.SW (t,"2","0")]
+              | saveMem (c::cs) = [Mips.ADDI (t,"0", makeConstChar c),
+                                   Mips.SW (t,"2","0"),
+                                   Mips.ADDI ("2", "2", "4")] @ saveMem cs
+        in 
+          (* Use balloc to allocate space *)
+          (Type.CharRef, (* [] ) *)
+            [Mips.ADDI ("2","0",Int.toString(size)),
+             Mips.JAL ("balloc",[]), 
+             Mips.ADDI (place, "2", "0")] @
+             saveMem (explode(s)))              
+                   
+        end
     | S100.LV lval =>
         let
           val (code,ty,loc) = compileLval lval vtable ftable
@@ -116,9 +131,9 @@ struct
           | (Type.Char, Reg x) =>
             (Type.Char,
              code0 @ code1 @ [Mips.MOVE (x,t), Mips.MOVE (place,t)])
-	  | (Type.Char, Mem x) =>
-	    (Type.Char,
-	     code0 @ code1 @ [Mips.SW (t,x,"0")])
+          | (Type.Char, Mem x) =>
+            (Type.Char,
+             code0 @ code1 @ [Mips.SW (t,x,"0")])
 
           | _ => raise Error("Not assignable",p)
         end
@@ -429,7 +444,7 @@ struct
     let
       val ftable =
 	  Type.getFuns funs [("walloc",([Type.Int],Type.IntRef)),
-			     ("balloc",([Type.Int],Type.CharRef)),
+                     ("balloc",([Type.Int],Type.CharRef)),
                              ("getint",([],Type.Int)),
 			     ("putint",([Type.Int],Type.Int))]
       val funsCode = List.concat (List.map (compileFun ftable) funs)
