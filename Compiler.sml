@@ -18,6 +18,9 @@ struct
   fun makeConst n = if n>=0 then Int.toString n
                     else "-" ^ Int.toString (~n)
 
+  (* Create CharConst in correct format e.g. #"a" -> 'a' *)
+  fun makeConstChar c = "'" ^ Char.toString(c) ^ "'"
+
   fun lookup x [] = NONE
     | lookup x ((y,v)::table) = if x=y then SOME v else lookup x table
 
@@ -72,67 +75,82 @@ struct
 	  (Type.Int,
 	   [Mips.LUI (place, makeConst (n div 65536)),
 	   Mips.ORI (place, place, makeConst (n mod 65536))])
+    | S100.CharConst (c,pos) =>
+      (Type.Char,[Mips.LI (place, makeConstChar c)])
+    | S100.StringConst (s,pos) => 
+      (Type.CharRef, [])
+      (* Not implemented *)
+
     | S100.LV lval =>
         let
-	  val (code,ty,loc) = compileLval lval vtable ftable
-	in
-	  case (ty,loc) of
-	    (Type.Int, Reg x) =>
-	      (Type.Int,
-	       code @ [Mips.MOVE (place,x)])
-      | (Type.Int, Mem x) =>
-          (Type.Int,
-           code @ [Mips.LW (place,x,"0")])
-      | _ => raise Error("LV not implemented",(0,0))
-	end
+          val (code,ty,loc) = compileLval lval vtable ftable
+        in
+          case (ty,loc) of
+            (Type.Int, Reg x) =>
+              (Type.Int,
+               code @ [Mips.MOVE (place,x)])
+          | (Type.Int, Mem x) =>
+              (Type.Int,
+               code @ [Mips.LW (place,x,"0")])
+          | (Type.Char, Reg x) =>
+              (Type.Char,
+               code @ [Mips.MOVE (place,x)])
+          | (Type.Char, Mem x) =>
+              (Type.Char,
+               code @ [Mips.LW (place,x,"0")])
+          | _ => raise Error("LV not implemented",(0,0))
+        end
     | S100.Assign (lval,e,p) =>
         let
           val t = "_assign_"^newName()
-	  val (code0,ty,loc) = compileLval lval vtable ftable
-	  val (_,code1) = compileExp e vtable ftable t
-	in
-	  case (ty,loc) of
-	      (Type.Int, Reg x) =>
-	      (Type.Int,
-	       code0 @ code1 @ [Mips.MOVE (x,t), Mips.MOVE (place,t)])
-      |   (Type.Int, Mem x) =>
-          (Type.Int,
-           code0 @ code1 @ [Mips.SW (x,t,"0")])
-	  | _ => raise Error("Not assignable",p)
-    end
+          val (code0,ty,loc) = compileLval lval vtable ftable
+          val (_,code1) = compileExp e vtable ftable t
+        in
+          case (ty,loc) of
+            (Type.Int, Reg x) =>
+              (Type.Int,
+               code0 @ code1 @ [Mips.MOVE (x,t), Mips.MOVE (place,t)])
+          | (Type.Int, Mem x) =>
+              (Type.Int,
+               code0 @ code1 @ [Mips.SW (x,t,"0")])
+          | (Type.Char, Reg x) =>
+              (Type.Char,
+               code0 @ code1 @ [Mips.MOVE (x,t), Mips.MOVE (place,t)])
+          | _ => raise Error("Not assignable",p)
+        end
     | S100.Plus (e1,e2,pos) =>
         let
-	  val t1 = "_plus1_"^newName()
-	  val t2 = "_plus2_"^newName()
+	      val t1 = "_plus1_"^newName()
+	      val t2 = "_plus2_"^newName()
           val (ty1,code1) = compileExp e1 vtable ftable t1
           val (ty2,code2) = compileExp e2 vtable ftable t2
-	in
-	  case (ty1,ty2) of
-	    (Type.Int, Type.Int) =>
-	      (Type.Int,
-	       code1 @ code2 @ [Mips.ADD (place,t1,t2)])
-	end
+	    in
+	      case (ty1,ty2) of
+	        (Type.Int, Type.Int) =>
+	          (Type.Int,
+	          code1 @ code2 @ [Mips.ADD (place,t1,t2)])
+	    end
     | S100.Minus (e1,e2,pos) =>
         let
-	  val t1 = "_minus1_"^newName()
-	  val t2 = "_minus2_"^newName()
+	      val t1 = "_minus1_"^newName()
+	      val t2 = "_minus2_"^newName()
           val (ty1,code1) = compileExp e1 vtable ftable t1
           val (ty2,code2) = compileExp e2 vtable ftable t2
-	in
-	  case (ty1,ty2) of
-	    (Type.Int, Type.Int) =>
-	      (Type.Int,
-	       code1 @ code2 @ [Mips.SUB (place,t1,t2)])
-	end
+	    in
+	      case (ty1,ty2) of
+	        (Type.Int, Type.Int) =>
+	          (Type.Int,
+	          code1 @ code2 @ [Mips.SUB (place,t1,t2)])
+	    end
     | S100.Less (e1,e2,pos) =>
         let
-	  val t1 = "_less1_"^newName()
-	  val t2 = "_less2_"^newName()
+	      val t1 = "_less1_"^newName()
+	      val t2 = "_less2_"^newName()
           val (_,code1) = compileExp e1 vtable ftable t1
           val (_,code2) = compileExp e2 vtable ftable t2
-	in
-	  (Type.Int, code1 @ code2 @ [Mips.SLT (place,t1,t2)])
-	end
+	    in
+	      (Type.Int, code1 @ code2 @ [Mips.SLT (place,t1,t2)])
+	    end
     | S100.Call (f,es,pos) =>
 	let
 	  val rTy = case lookup f ftable of
@@ -429,7 +447,11 @@ struct
      
      Mips.LABEL "balloc", (* balloc not implemented *)
      Mips.LABEL "getstring", (* getstring not implemented *)
+     
      Mips.LABEL "putstring", (* putstring not implemented *)
+     (* Mips. *)
+     (* Mips.SYSCALL, *)
+
       
       
      Mips.LABEL "putint",     (* putint function *)

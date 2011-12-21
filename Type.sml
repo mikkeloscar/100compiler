@@ -42,20 +42,22 @@ struct
      | S100.LV lv => checkLval lv vtable ftable
      | S100.Assign (lv,e1,p) =>
        let
-	   val t1 = checkLval lv vtable ftable
-	   val t2 = checkExp e1 vtable ftable
+         val t1 = checkLval lv vtable ftable
+         val t2 = checkExp e1 vtable ftable
        in
-	   case (t1,t2) of 
-            (Int,IntRef) => Int
-	  | (Char,CharRef) => Char
-	  | (_,_) =>
-	    if t1=t2 then t2
-	    else raise Error ("Type mismatch in assignment",p)
-       end
+         case (t1,t2) of 
+           (Int,IntRef) => Int
+         | (Char,CharRef) => Char
+         | (Char,Int) => Char
+         | (Int,Char) => Int
+         | (_,_) =>
+            if t1=t2 then t2
+            else raise Error ("Type mismatch in assignment",p)
+         end
      | S100.Plus (e1,e2,p) =>
        (case (checkExp e1 vtable ftable,
-	      checkExp e2 vtable ftable) of
-	 (Int,Int) => Int
+            checkExp e2 vtable ftable) of
+         (Int,Int) => Int
        | (Int,Ref) => Ref
        | (Ref,Int) => Ref
        | (_,_) => raise Error ("Type mismatch in assignment",p))
