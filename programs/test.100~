@@ -2,29 +2,39 @@
 
 int main()
 {
- int *a, *b;
- int i;
+ char *a,*c;
+ int i,b;
  
- a = walloc(5);
- b = walloc(2);
+ a = balloc(4);
+ c = balloc(4);
  
- a[0] = 2;
- a[1] = 4;
- a[2] = 6;
- a[3] = 9;
- a[4] = 11;
- a[5] = 12;
 
- b[0] = 17;
- b[1] = 200;
- 
+ a[0] = 'h';
+ a[1] = 'e';
+ a[2] = 'j';
+ a[3] = ' ';
+ a[4] = 'a';
+     
+ c[0] = 'l';
+ c[1] = 'o';
+ c[2] = 'r';
+ c[3] = 't';
+
+
  while(i < 6){
- 	putint(a[i]);
+ 	b = a[i];
+ 	putint(b);
  	i = i + 1;
- }
+ }    
 
-putint(b[1]);
-putint(b[2]);
+i = 0;
+while(i < 5){
+ 	b = c[i];
+ 	putint(b);
+ 	i = i + 1;
+}
+
+
  
  return 0;
 

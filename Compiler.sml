@@ -111,11 +111,15 @@ struct
               (Type.Int,
                code0 @ code1 @ [Mips.MOVE (x,t), Mips.MOVE (place,t)])
           | (Type.Int, Mem x) =>
-              (Type.Int,
-		       code0 @ code1 @ [Mips.SW (t,x,"0")])
+            (Type.Int,
+	     code0 @ code1 @ [Mips.SW (t,x,"0")])
           | (Type.Char, Reg x) =>
-              (Type.Char,
-               code0 @ code1 @ [Mips.MOVE (x,t), Mips.MOVE (place,t)])
+            (Type.Char,
+             code0 @ code1 @ [Mips.MOVE (x,t), Mips.MOVE (place,t)])
+	  | (Type.Char, Mem x) =>
+	    (Type.Char,
+	     code0 @ code1 @ [Mips.SW (t,x,"0")])
+
           | _ => raise Error("Not assignable",p)
         end
     | S100.Plus (e1,e2,pos) =>
@@ -448,6 +452,7 @@ struct
      Mips.JR (RA,[]),
 
      Mips.LABEL "balloc", (* balloc not implemented *)
+     Mips.SLL("2","2","2"), (* mult by 2 *)
      Mips.ADDI("4","2","0"), (* add parameter to input *)
      Mips.LI("2","9"), (* syscall sbrk *)
      Mips.SYSCALL, (* execute *)
