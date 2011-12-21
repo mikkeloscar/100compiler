@@ -1,0 +1,11 @@
+/* Test 100 */
+
+int main(){
+/* hejsa */
+
+char *a;
+int b;
+b = 2;
+
+return a + b;
+}
