@@ -37,31 +37,27 @@ struct
   val maxCaller = 15   (* highest caller-saves register *)
   val maxReg = 24      (* highest allocatable register *)
 
-(* handle declarations and function arguments *)
-fun moveArgs [] r = ([], [], 0)
-  | moveArgs ((t,ss)::ds) r =
-      moveArgs1 ss (Type.convertType t) ds r
-and moveArgs1 [] t ds r = moveArgs ds r
-  | moveArgs1 (s::ss) t ds r =
+  (* handle declarations and function arguments *)
+  fun moveArgs [] r = ([], [], 0)
+    | moveArgs ((t,ss)::ds) r =
+        moveArgs1 ss (Type.convertType t) ds r
+  and moveArgs1 [] t ds r = moveArgs ds r
+    | moveArgs1 (s::ss) t ds r =
     let
-       val y = newName ()
-       val (x,ty,loc) = (case s of
-                   S100.Val (x,p) => (x, t, x^y)
-                 | S100.Ref (x,p) => (x, t, x^y))
-       val rname = Int.toString r
-       val (code, vtable, stackSpace) = moveArgs1 ss t ds (r+1)
+        val y = newName ()
+        val (x,ty,loc) = (
+            case s of
+              S100.Val (x,p) => (x, t, x^y)
+            | S100.Ref (x,p) => (x, t, x^y))
+        val rname = Int.toString r
+        val (code, vtable, stackSpace) = moveArgs1 ss t ds (r+1)
     in
-     if r<=maxCaller then
-       (Mips.MOVE (loc, rname) :: code,
-        (x,(ty,loc)) :: vtable,
-        stackSpace)
-     else
-       (Mips.LW (loc, FP, makeConst stackSpace) :: code,
-        (x,(ty,loc)) :: vtable,
-        stackSpace + 4)
-    end
-
-
+        if r<=maxCaller
+        then (Mips.MOVE (loc, rname) :: code,
+             (x,(ty,loc)) :: vtable, stackSpace)
+        else (Mips.LW (loc, FP, makeConst stackSpace) :: code,
+             (x,(ty,loc)) :: vtable, stackSpace + 4)
+      end
 
   datatype Location = Reg of string (* value is in register *)
 
@@ -178,8 +174,11 @@ and moveArgs1 [] t ds r = moveArgs ds r
     case lval of
       S100.Var (x,p) =>
         (case lookup x vtable of
-	   SOME (ty,y) => ([],ty,Reg y)
-	 | NONE => raise Error ("Unknown variable "^x,p))
+	      SOME (ty,y) => ([],ty,Reg y)
+	    | NONE => raise Error ("Unknown variable "^x,p))
+    (* | S100.Deref (x,p) => (x,p) *)
+    (* | S100.Index (x,e,p) =>  *)
+
 
   fun compileStat s vtable ftable exitLabel =
     case s of

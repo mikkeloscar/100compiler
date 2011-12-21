@@ -541,7 +541,7 @@ val d__2__ = peekVal 2 : (int*int)
 val d__3__ = peekVal 1 : S100.Exp
 val d__4__ = peekVal 0 : (int*int)
 in
-( S100.Lookup (#1 (d__1__),(d__3__),(d__2__)) ) end : S100.Lval))
+( S100.Index (#1 (d__1__),(d__3__),(d__2__)) ) end : S100.Lval))
 ;
 (* Entry Prog *)
 val _ = update_ yyact 41 (fn () => raise yyexit (peekVal 0));

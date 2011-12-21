@@ -30,7 +30,7 @@ struct
   and Lval
     = Var of string * pos
     | Deref of string * pos
-    | Lookup of string * Exp * pos
+    | Index of string * Exp * pos
 
   datatype Stat
     = EX of Exp
