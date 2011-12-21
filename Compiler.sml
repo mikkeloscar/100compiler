@@ -407,8 +407,9 @@ struct
     let
       val ftable =
 	  Type.getFuns funs [("walloc",([Type.Int],Type.IntRef)),
-                         ("getint",([],Type.Int)),
-			             ("putint",([Type.Int],Type.Int))]
+			     ("balloc",([Type.Int],Type.CharRef)),
+                             ("getint",([],Type.Int)),
+			     ("putint",([Type.Int],Type.Int))]
       val funsCode = List.concat (List.map (compileFun ftable) funs)
     in
       [Mips.TEXT "0x00400000",
@@ -422,21 +423,19 @@ struct
       @ [
      Mips.LABEL "walloc", (* walloc not implemented *)
 
-     Mips.SLL("2","2","2"),
-     Mips.ADDI("4","2","0"),
+     Mips.SLL("2","2","2"), (* mult by 2 *)
+     Mips.ADDI("4","2","0"), (* add parameter to input *)
+     Mips.LI("2","9"), (* syscall sbrk *)
+     Mips.SYSCALL, (* execute *)
+     Mips.JR (RA,[]),
 
-
-     Mips.LI("2","9"),
-     Mips.SYSCALL,
-
-
-
+     Mips.LABEL "balloc", (* balloc not implemented *)
+     Mips.ADDI("4","2","0"), (* add parameter to input *)
+     Mips.LI("2","9"), (* syscall sbrk *)
+     Mips.SYSCALL, (* execute *)
      Mips.JR (RA,[]),
 
 
-
-    
-     Mips.LABEL "balloc", (* balloc not implemented *)
      Mips.LABEL "getstring", (* getstring not implemented *)
      Mips.LABEL "putstring", (* putstring not implemented *)
       
