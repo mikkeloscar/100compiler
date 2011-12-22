@@ -264,7 +264,6 @@ exists beretter om indeholdet af en sandhedsværdi:\\
       end
 \end{minted}
 
-
 I \texttt{checkFunDec} funktionen tjekker vi om returtypen for en funktion er
 den samme som, den definerede. Først finder vi returtypen på den definerede, og
 så sammenligner vi den med den returnede type. Hvis disse ikke er ens kastes en
@@ -322,7 +321,41 @@ For det første har vi implementeret \texttt{Blocks}.
     end
 \end{minted}
 
+
 \subsection{Mangler ved implementationen}
+Selvom de fleste krav til oversætteren er opfyldt, har vores oversættere desværre et par svagheder. Den indbyggede funktion \texttt{getstring() der returnerer en hob-allokeret string, der indeholder op til n−1 tegn læst fra standard input, arter sig ikke helt eksemplarisk. Forsøger vi at læse fra standard input med indholdet af den udleverede fil \texttt{copy.in} der indeholder stregnen \texttt{Husk at teste jeres compiler ordentligt!}, og efterfølgende skrive dette ud, får vi følgende output:\\
+
+\begin{quote}
+Husk at teste jeres compiler ordentligt!
+ at teste jeres compiler ordentligt!
+teste jeres compiler ordentligt!
+e jeres compiler ordentligt!
+res compiler ordentligt!
+compiler ordentligt!
+iler ordentligt!
+ ordentligt!
+entligt!
+igt!
+\end{quote}
+
+Selvom den oprindelige string er indeholdt i outputtet, ses det tydeligt at den gentages i forskellige længder. For ovenstående, har vi kørt kommandoen \texttt{putstring(getstring(100));}, der altså skulle have termineret en smule tidligere. Funktionen skrevet i Mips, assembler er skrevet således:
+
+
+\begin{minted}[bgcolor=bg]{sml}
+ Mips.LABEL "getstring",      (* getstring *)
+ Mips.ADDI(HP,HP,"8"),        (* space on heap pointer *)
+ Mips.ADDI ("5","2","0"),     (* argument 1 to reg 5 *)  
+ Mips.ADDI ("4",HP,"0"),      (* argument 2 to reg 4 *)    
+ Mips.LI ("2","8"),           (* init function read_string *)
+ Mips.SYSCALL,                (* call function *)
+ Mips.ADDI("2",HP,"0"),       (* add result to output reg 2 *)    
+ Mips.JR (RA, []),
+\end{minted}
+
+Vi har forsøgt at ligge de 2 parametre: størrelsen af strengen, samt adressen i de 2 paramtre registre 4 og 5, og efterfølgende køre syscall function read_string. Uheldigvis uden det helt ønskede resultat.
+
+
+
 
 \section{Efterskrift}
 

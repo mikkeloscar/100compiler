@@ -503,17 +503,14 @@ struct
      Mips.JR (RA,[]),
 
 
-     Mips.LABEL "getstring",  (* getstring *)
-     Mips.ADDI(HP,HP,"8"),
-         Mips.ADDI ("5","2","0"),   
-         Mips.ADDI ("4",HP,"0"),      
-
-         Mips.LI ("2","8"),       
-         Mips.SYSCALL,    
-   
-         Mips.ADDI("2",HP,"0"),       
+     Mips.LABEL "getstring",      (* getstring *)
+     Mips.ADDI(HP,HP,"8"),        (* space on heap pointer *)
+         Mips.ADDI ("5","2","0"), (* argument 1 to reg 5 *)  
+         Mips.ADDI ("4",HP,"0"),  (* argument 2 to reg 4 *)    
+         Mips.LI ("2","8"),       (* init function read_string *)
+         Mips.SYSCALL,            (* call function *)
+         Mips.ADDI("2",HP,"0"),   (* add result to output reg 2 *)    
          Mips.JR (RA, []),
-
 
      Mips.LABEL "putstring", 
 
