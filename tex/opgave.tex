@@ -267,7 +267,6 @@ exists beretter om indeholdet af en sandhedsværdi:\\
 I \texttt{checkFunDec} funktionen tjekker vi om returtypen for en funktion er
 den samme som, den definerede. Først finder vi returtypen på den definerede, og
 så sammenligner vi den med den returnede type. Hvis disse ikke er ens kastes en
-fejl, ellers fortsættes tjekket af funktionskroppen.
 
 \begin{minted}[bgcolor=bg]{sml}
 S100.Return (e,p) => 
@@ -368,12 +367,7 @@ For det første har vi implementeret \texttt{Blocks}.
 \subsection{Mangler ved implementationen}
 
 Selvom de fleste krav til oversætteren er opfyldt, har vores oversættere
-desværre et par svagheder. Den indbyggede funktion \texttt{getstring() der
-returnerer en hob-allokeret string, der indeholder op til n-1 tegn læst fra
-standard input, arter sig ikke helt eksemplarisk. Forsøger vi at læse fra
-standard input med indholdet af den udleverede fil \texttt{copy.in} der
-indeholder stregnen \texttt{Husk at teste jeres compiler ordentligt!}, og
-efterfølgende skrive dette ud, får vi følgende output:\\
+desværre et par svagheder. Den indbyggede funktion \texttt{getstring()} der returnerer en hov-allokeret string, der indeholder op til n-1 tegn læst fra standard input, arter sig ikke helt eksemplarisk. Forsøger vi at læse fra standard input med indholdet af den udleverede fil \texttt{copy.in} der indeholder stregnen \texttt{Husk at teste jeres compiler ordentligt!}, og efterfølgende skrive dette ud, får vi følgende output:\\
 
 \begin{quote}
 Husk at teste jeres compiler ordentligt! \\
