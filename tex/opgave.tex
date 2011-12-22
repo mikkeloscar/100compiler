@@ -95,7 +95,7 @@ består foruden de regulære udtryk af en liste af nøgleord, der altid ser ens 
 Vi har til denne liste tilføjet nøgleordet \textit{while}, da denne ikke var at
 finde i det oprindelige skelet. Regelsættet er at finde i \texttt{Lexer.lex}\\
 Foruden at have tilføjet simple regulære udtryk til at matche \texttt{*},
-\texttt{[}, \texttt{]}, \texttt{\{}, \texttt{\}} og \texttt{==} - har vi
+\texttt{[}, \texttt{]}, \texttt{\{}, \texttt{\}} og \texttt{==} har vi
 tilføjet to regulære udtryk til at matche String og Char. Det regulære udtryk,
 samt fjernelsen af de to anførselstegn rundt om Stringen udgør vores leksikalske
 analyse af string (ligeledes for char), og er implementeret således:\\
@@ -109,7 +109,7 @@ analyse af string (ligeledes for char), og er implementeret således:\\
 \end{minted}	 
     
 En char eller string kan indeholde hhv. et eller flere tegn med ASCII kode
-mellem 32 og 126 undtagen tegnene ’, " og \. Dette er lavet ved at definere en
+mellem 32 og 126 undtagen tegnene \texttt{’} \texttt{"} og \textbackslash. Dette er lavet ved at definere en
 sekvens af alle tegn undtagen disse, eller en sekvens indeholdende alle tegn (er
 lavet ved en sekvens af alt undtagen 'a', eller 'a'), med et escape tegn foran.
 For char skal der være én af disse, og for string en eller flere.
@@ -152,9 +152,9 @@ understøtte typchekeren har vi implementeret 4 forskellige datatyper, der rundt
 omrking i typecheckeren bruges til at holde styr på hvilke typer variable er
 tildelt og hvilke typer der er lovlige for hvilke operationer, samt hvilke typer
 der returneres. Funktionerne \texttt{convertType} og \texttt{convertTypeRef}
-bruges til at oversætte de ækvivalenter typer i \texttt{S100.sml} til datatypen
+bruges til at oversætte de ækvivalente typer i \texttt{S100.sml} til datatypen
 implementeret i typecheckeren. \\
-Funktionen \texttt{checkExp} tjekker om et expression er lovligt, samt hvilken
+Funktionen \texttt{checkExp} tjekker om en expression er lovlig, samt hvilken
 type det bør returnere. Dette ses bedst med et eksempel fra \texttt{checkExp},
 der tjekker om en plus-operation er lovlig. Der checkes på de mønstre defineret
 i opgaven, og der returneres den type den givne operation ville afgive:\\
@@ -199,8 +199,8 @@ Denne case kaster en fejl hvis det ikke er en referencetype der laves lookup på
 
 Funktionen \texttt{checkStat} tjekker om en \textit{Stat} er typemæssigt i
 orden, og returnerer en unit-type \textbf{()} såfremt denne ikke indeholder
-fejl. Flere at de i grammatikken nævnte grammatikker kan indeholde flere Stats,
-da grammatikken er rekursiv. Dette betyder at eksempeltvis et IF-statement kan
+fejl. Flere af de i grammatikken nævnte produktioner kan indeholde flere Stats,
+hvis produktionen er rekursiv. Dette betyder at eksempeltvis et IF-statement kan
 indeholder flere IF og WHILE-statements. Dette er i typecheckeren håndteret ved
 at lave cases for hver Stat, samt rekursivt lade disse køre \texttt{checkStat}.
 En block er et statement der inholder sit eget \textit{scope} - altså hvor
@@ -280,11 +280,11 @@ funktionstabellen.
 
 \section{Kodegenerering}
 Efter programmet er lexet, parset, og tjekket for typefejl er man klar til at
-oversætte det til asmbler. Dette gøres i vores oversætter ved at lave en liste
-at \texttt{Mips}-intruktioner defineret i følge SML-Mips-modulet.
+oversætte det til asembler. Dette gøres i vores oversætter ved at lave en liste
+at \texttt{Mips}-intruktioner defineret i henhold til SML-Mips-modulet.
 
-For at gøre oversætteret i stand til at oversætte alle sprogkonstruktioner i
-100, har vi tilføjet en rækker cases i \texttt{Compiler.sml}.
+For at gøre oversætteren i stand til at oversætte alle sprogkonstruktioner i
+100, har vi tilføjet en række cases i \texttt{Compiler.sml}.
 
 For det første har vi tilføjet typen \texttt{Char}. Det har vi gjort ved at
 tilføje en \texttt{CharConst} til \texttt{compileExp}.
@@ -294,13 +294,13 @@ tilføje en \texttt{CharConst} til \texttt{compileExp}.
      (Type.Char,[Mips.LI (place, makeConstChar c)])
 \end{minted}
 
-funtionen \texttt{makeConstChar} tager imod en \texttt{Char} laver den om til en
+funktionen \texttt{makeConstChar} tager imod en \texttt{Char} laver den om til en
 string i formatet \texttt{"'c'"}, således at den kan bruges direkte i Mips.
 
 Foruden \texttt{Char} har vi implementeret referencer i form af \texttt{IntRef}
 og \texttt{CharRef}. Lookup (som vi har kaldt Index) og de andre operationer på
 referencer er implementeret meget tæt på det der er beskrevet i
-\cite{Mogensen11} side 136. En væsentlig forskel er at vi også returnere en
+\cite{Mogensen11} side 136. En væsentlig forskel er at vi også returnerer en
 type, så vi kan holde styr på om det er en \texttt{IntRef} eller en
 \texttt{CharRef} senere hen i oversættelsen. I forbindelse med referencer har vi
 også inplemenret en \texttt{StringConst} som i bund og grund er en
@@ -331,11 +331,11 @@ end
 \end{minted}
 
 Vi starter med at finde længden af strengen så vi er klar over hvor meget plads
-vi skal allokere (bemærk at vi allokere en ekstra
+vi skal allokere (bemærk at vi allokerer en ekstra
 plads for at have plads til en NUL-byte så vi ved hvornår strengen stopper hvis
 vi sidenhen skal læse den). Pladsen allokerer vi ved hjælp af funktionen
 \texttt{balloc} som vi selv har implementeret. Når pladsen er allokeret gemmer
-vi karakterene en efter en, ved hjælp af funktionen \texttt{saveMem}, den sidste
+vi karaktererne en efter en, ved hjælp af funktionen \texttt{saveMem}, den sidste
 karakter er som sagt en NUL-byte. 
 
 For det første har vi implementeret \texttt{Blocks}. 
