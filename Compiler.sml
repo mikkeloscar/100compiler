@@ -4,7 +4,6 @@
 structure Compiler :> Compiler =
 struct
 
-
   (* Use "raise Error (message,position)" for error messages *)
   exception Error of string*(int*int)
 
@@ -96,7 +95,6 @@ struct
              saveMem (explode(s)) @ [Mips.ADDI ("2","2","4"),
                                      Mips.ADDI (t, "0", "0"),
                                      Mips.SW (t,"2","0")])              
-                   
         end
     | S100.LV lval =>
         let
@@ -120,6 +118,7 @@ struct
           val (code0,ty,loc) = compileLval lval vtable ftable
           val (_,code1) = compileExp e vtable ftable t
         in
+	  (* the different cases asign tolerates *)
           case (ty,loc) of
             (typ, Reg x) =>
               (typ,
@@ -130,7 +129,6 @@ struct
           | (Type.Char, Mem x) =>
             (Type.CharRef,
              code0 @ code1 @ [Mips.SW (t,x,"0")])
-
           | _ => raise Error("Not assignable",p)
         end
     | S100.Plus (e1,e2,pos) =>
@@ -141,8 +139,10 @@ struct
           val (ty2,code2) = compileExp e2 vtable ftable t2
       in
 	  case (ty1,ty2) of
+	      (* regular add *)
 	      (Type.Int, Type.Int) =>
 	            (Type.Int, code1 @ code2 @ [Mips.ADD (place,t1,t2)])
+	    (* multiply parameter with 8, and add mem adress to int *)
 	    | (Type.IntRef, Type.Int) => 
   	            (Type.IntRef, code1 @ code2 @ [Mips.SLL(t2,t2,"3"), Mips.ADD (place,t1,t2)]) 
 	    | (Type.Int, Type.IntRef) => 
@@ -161,9 +161,11 @@ struct
             val (ty2,code2) = compileExp e2 vtable ftable t2
       in
 	  case (ty1,ty2) of
+	      (* regular minus *)
 	      (Type.Int, Type.Int) => (Type.Int, code1 @ code2 @ [Mips.SUB (place,t1,t2)])
 	    | (Type.IntRef, Type.Int) => 
   	            (Type.IntRef, code1 @ code2 @ [Mips.SLL(t2,t2,"3"), Mips.SUB (place,t1,t2)]) 
+	    (* multiply by 8, and substract paremter from mem adress *)
 	    | (Type.CharRef, Type.Int) =>
 	            (Type.CharRef, code1 @ code2 @ [Mips.SLL (t2,t2,"3"), Mips.SUB (place,t1,t2)])
 	    | (Type.IntRef, Type.IntRef) =>
@@ -226,6 +228,8 @@ struct
 	  val (_,code1) = compileExp e1 vtable ftable t1
 	  val (_,code2) = compileExp e2 vtable ftable t2
       in
+	  (* of theyre not equal, just to label that sets "label" to 0, otherwise
+	     just to label that sets "label" to one. jump out in the end *)
 	  (Type.Int, code1 @ code2 @ [Mips.BNE(t1,t2,l1),
 				      Mips.ADDI(place,"0","1"), Mips.J(l2),
 				      Mips.LABEL l1, Mips.ADDI(place,"0","0"),
@@ -250,6 +254,7 @@ struct
 	    | NONE => raise Error ("Unknown variable "^x,p))
     | S100.Deref (x,p) =>
         (case lookup x vtable of
+	     (* force type to be referece *)
 	     SOME (ty,y) => ([], (if ty = Type.Int then Type.IntRef else Type.CharRef), Reg y)
 	   | NONE => raise Error("Unkown reference "^x,p))
     | S100.Index (x,e,p) => 
@@ -258,13 +263,13 @@ struct
              let
                val t = "_index1_"^newName()
                val code1 = #2 (compileExp e vtable ftable t)
+	       (* multiply by 4 and add offset *)
                val code2 = code1 @ [Mips.SLL (t,t,"2"), Mips.ADD (t,t,y)]
              in
                (code2, ty, Mem t)
              end
          | NONE => raise Error ("Unknown index "^x,p))
          
-
   fun compileStat s vtable ftable exitLabel =
     case s of
       S100.EX e => #2 (compileExp e vtable ftable "0")
@@ -274,22 +279,23 @@ struct
           val l1 = "_endif_"^newName()
         in
           case s1 of
-            S100.Block (d,s,p) =>
-             let 
-                val (_,code0) = compileExp e vtable ftable t
-                val statlist = List.map
-                    (fn st => compileStat st vtable ftable exitLabel) s
-                val code1 = foldl (fn (x,y) => y @ x) (hd statlist) (tl statlist)
-             in
+	      (* if statement constructed with block *)          
+	      S100.Block (d,s,p) =>
+              let 
+                  val (_,code0) = compileExp e vtable ftable t
+                  val statlist = List.map
+				     (fn st => compileStat st vtable ftable exitLabel) s
+                  val code1 = foldl (fn (x,y) => y @ x) (hd statlist) (tl statlist)
+              in
                   code0 @ [Mips.BEQ (t,"0",l1)] @ code1 @ [Mips.LABEL l1]
-             end
-          | _ =>
-             let 
-                val (_,code0) = compileExp e vtable ftable t
-                val code1 = compileStat s1 vtable ftable exitLabel
-             in
+              end
+            | _ =>
+              let 
+                  val (_,code0) = compileExp e vtable ftable t
+                  val code1 = compileStat s1 vtable ftable exitLabel
+              in
                   code0 @ [Mips.BEQ (t,"0",l1)] @ code1 @ [Mips.LABEL l1]
-             end
+              end
 
         end
     | S100.IfElse (e,s1,s2,p) =>
@@ -303,13 +309,11 @@ struct
             (S100.Block (_,s1,_), S100.Block (_,s2,_)) =>
               let
                 val statlist = List.map
-                        (fn st => compileStat st vtable ftable exitLabel) s1
+			(fn st => compileStat st vtable ftable exitLabel) s1
                 val code1 = foldl (fn (x,y) => y @ x) (hd statlist) (tl statlist)
                 val statlist2 = List.map
                         (fn st => compileStat st vtable ftable exitLabel) s2
                 val code2 = foldl (fn (x,y) => y @ x) (hd statlist2) (tl statlist2)
-                (* val code1 = compileStat s1 vtable ftable exitLabel *)
-                (* val code2 = compileStat s2 vtable ftable exitLabel *)
               in
                 code0 @ [Mips.BEQ (t,"0",l1)] @ code1
                 @ [Mips.J l2, Mips.LABEL l1] @ code2 @ [Mips.LABEL l2]
@@ -358,8 +362,7 @@ struct
 	  
 	  val (parcode,d_vtable,stackParams) (* move parameters to arguments *)
             = moveArgs d 2
-           val statlist = List.map 
-                 (fn st => compileStat st (d_vtable @ vtable) ftable
+           val statlist = List.map (fn st => compileStat st (d_vtable @ vtable) ftable
            exitLabel) s
           val stats = foldl (fn (x,y) => y @ x) (hd statlist) (tl statlist)
           val (stats1, _, maxr,spilled)  (* call register allocator *)
@@ -368,7 +371,6 @@ struct
         in
           stats1
         end
-
     | S100.While (e,s,p) => 
         let
             val l1 = "_while_"^newName()
@@ -468,6 +470,7 @@ struct
   fun compile funs =
     let
       val ftable =
+	  (* built in functions *)
 	  Type.getFuns funs [("walloc",([Type.Int],Type.IntRef)),
 			     ("balloc",([Type.Int],Type.CharRef)),
                              ("getint",([],Type.Int)),
@@ -486,46 +489,44 @@ struct
       @ funsCode		  (* code for functions *)
 
       @ [
+
      Mips.LABEL "walloc",
-
-     Mips.SLL("2","2","2"), (* mult by 4 *)   
-     Mips.ADDI("4","2","0"),  (* add parameter to input *) 
-     Mips.LI("2","9"), (* syscall sbrk *)
-     Mips.SYSCALL, (* execute *)
-
+     Mips.SLL("2","2","2"),       (* mult by 4 *)   
+     Mips.ADDI("4","2","0"),      (* add parameter to input *) 
+     Mips.LI("2","9"),            (* syscall sbrk *)
+     Mips.SYSCALL,                (* execute *)
      Mips.JR (RA,[]),
 
      Mips.LABEL "balloc", 
-     Mips.SLL("2","2","2"), (* mult by 4 *)
-     Mips.ADDI("4","2","0"), (* add parameter to input *)
-     Mips.LI("2","9"), (* syscall sbrk *)
-     Mips.SYSCALL, (* execute *)
+     Mips.SLL("2","2","2"),       (* mult by 4 *)
+     Mips.ADDI("4","2","0"),      (* add parameter to input *)
+     Mips.LI("2","9"),            (* syscall sbrk *)
+     Mips.SYSCALL,                (* execute *)
      Mips.JR (RA,[]),
 
 
      Mips.LABEL "getstring",      (* getstring *)
      Mips.ADDI(HP,HP,"8"),        (* space on heap pointer *)
-         Mips.ADDI ("5","2","0"), (* argument 1 to reg 5 *)  
-         Mips.ADDI ("4",HP,"0"),  (* argument 2 to reg 4 *)    
-         Mips.LI ("2","8"),       (* init function read_string *)
-         Mips.SYSCALL,            (* call function *)
-         Mips.ADDI("2",HP,"0"),   (* add result to output reg 2 *)    
-         Mips.JR (RA, []),
+     Mips.ADDI ("5","2","0"),     (* argument 1 to reg 5 *)  
+     Mips.ADDI ("4",HP,"0"),      (* argument 2 to reg 4 *)    
+     Mips.LI ("2","8"),           (* init function read_string *)
+     Mips.SYSCALL,                (* call function *)
+     Mips.ADDI("2",HP,"0"),       (* add result to output reg 2 *)    
+     Mips.JR (RA, []),
 
      Mips.LABEL "putstring", 
+     Mips.ADDI(SP,SP,"-8"),       (* make space on stack pointer *)
+     Mips.SW ("2",SP,"0"),        (* save used registers *)
+     Mips.SW ("4",SP,"4"),        
+     Mips.MOVE ("4","2"),         (* put argument *)       
 
-     Mips.ADDI(SP,SP,"-8"),
-     Mips.SW ("2",SP,"0"),    (* save used registers *)
-     Mips.SW ("4",SP,"4"),
-     Mips.MOVE ("4","2"),
-
-        Mips.LABEL "put_char_loop",
-          Mips.LI ("2","4"),       (* print reg 2 *)
-          Mips.SYSCALL,            (* write  *)
-          Mips.LW("8","4","0"),    (* load the adress in to temp reg 8 *)
-          Mips.ADDI("4","4","4"),   (* increment *)
+     Mips.LABEL "put_char_loop",  
+          Mips.LI ("2","4"),      (* print reg 2 *)
+          Mips.SYSCALL,           (* write  *)
+          Mips.LW("8","4","0"),   (* load the adress in to temp reg 8 *)
+          Mips.ADDI("4","4","4"), (* increment *)
      
-     Mips.BNE("8","0","put_char_loop"), (* if temp reg 8  = 0 end, else print next word *)
+     Mips.BNE("8","0","put_char_loop"), (* if temp reg 8 = 0 end, else print next word *)
      
          Mips.LI ("2","4"),       (* write new line syscall *)
          Mips.LA("4","_cr_"),
@@ -535,40 +536,36 @@ struct
 	 Mips.LW ("4",SP,"4"),
 	 Mips.ADDI(SP,SP,"8"),
 
-
      Mips.JR (RA,[]), (* end putstring *)
          
-     Mips.LABEL "putint",     (* putint function *)
-         Mips.ADDI(SP,SP,"-8"),
-	 Mips.SW ("2",SP,"0"),    (* save used registers *)
-	 Mips.SW ("4",SP,"4"),
-	 Mips.MOVE ("4","2"),
-	 Mips.LI ("2","1"),       (* write_int syscall *)
-	 Mips.SYSCALL,
-	 Mips.LI ("2","4"),       (* writestring syscall *)
-	 Mips.LA("4","_cr_"),
-	 Mips.SYSCALL,            (* write CR *)
-	 Mips.LW ("2",SP,"0"),    (* reload used registers *)
-	 Mips.LW ("4",SP,"4"),
-	 Mips.ADDI(SP,SP,"8"),
-	 Mips.JR (RA,[]),
+     Mips.LABEL "putint",     
+     Mips.ADDI(SP,SP,"-8"),        (* stack pointer space *)
+     Mips.SW ("2",SP,"0"),         (* save used registers *)
+     Mips.SW ("4",SP,"4"),         
+     Mips.MOVE ("4","2"),          (* put argument *)
+     Mips.LI ("2","1"),            (* write_int syscall *)
+     Mips.SYSCALL,
+     Mips.LI ("2","4"),            (* writestring syscall *)
+     Mips.LA("4","_cr_"),
+     Mips.SYSCALL,                 (* write CR *)
+     Mips.LW ("2",SP,"0"),         (* reload used registers *)
+     Mips.LW ("4",SP,"4"),
+     Mips.ADDI(SP,SP,"8"),
+     Mips.JR (RA,[]),
 
-	 Mips.LABEL "getint",     (* getint function *)
-	 Mips.LI ("2","5"),       (* read_int syscall *)
-	 Mips.SYSCALL,
-	 Mips.JR (RA,[]),
-
-
-
-
-	 Mips.DATA "",
-	 Mips.ALIGN "2",
-	 Mips.LABEL "_cr_",       (* carriage return string *)
-	 Mips.ASCIIZ "\n",
-	 Mips.ALIGN "2",
-
-	 Mips.LABEL "_heap_",     (* heap space *)
-	 Mips.SPACE "100000"]
+     Mips.LABEL "getint",          (* getint function *)
+     Mips.LI ("2","5"),            (* read_int syscall *)
+     Mips.SYSCALL,                 (* call *)
+     Mips.JR (RA,[]),
+     
+     Mips.DATA "",
+     Mips.ALIGN "2",
+     Mips.LABEL "_cr_",       (* carriage return string *)
+     Mips.ASCIIZ "\n",
+     Mips.ALIGN "2",
+     
+     Mips.LABEL "_heap_",     (* heap space *)
+     Mips.SPACE "100000"]
     end
 
 end
