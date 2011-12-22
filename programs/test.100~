@@ -2,40 +2,18 @@
 
 int main()
 {
- char *a,*c;
- int i,b;
- 
- a = balloc(4);
- c = balloc(4);
- 
-
- a[0] = 'h';
- a[1] = 'e';
- a[2] = 'j';
- a[3] = ' ';
- a[4] = 'a';
-     
- c[0] = 'l';
- c[1] = 'o';
- c[2] = 'r';
- c[3] = 't';
 
 
- while(i < 6){
- 	b = a[i];
- 	putint(b);
- 	i = i + 1;
- }    
+char *a,*b,*e;
+int i,j;
 
-i = 0;
-while(i < 5){
- 	b = c[i];
- 	putint(b);
- 	i = i + 1;
+{
+i = 1;
+putint(i);
 }
 
+putint(i);
 
- 
  return 0;
 
 }

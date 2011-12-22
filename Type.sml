@@ -41,7 +41,7 @@ struct
      | S100.StringConst s => CharRef
      | S100.LV lv => checkLval lv vtable ftable
      | S100.Assign (lv,e1,p) =>
-       let
+       let 
          val t1 = checkLval lv vtable ftable
          val t2 = checkExp e1 vtable ftable
        in
@@ -66,7 +66,7 @@ struct
        (case (checkExp e1 vtable ftable,
 	      checkExp e2 vtable ftable) of
          (Int, Int) => Int
-       | (IntRef, Int) => Int
+       | (IntRef, Int) => IntRef
        | (IntRef, IntRef) => Int
        | (CharRef, Int) => CharRef
        | (CharRef, CharRef) => Int
