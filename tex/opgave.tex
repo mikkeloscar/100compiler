@@ -413,6 +413,50 @@ tidligere. Funktionen skrevet i Mips, assembler er skrevet således:
 Vi har forsøgt at ligge de 2 parametre: størrelsen af strengen, samt adressen i
 de 2 parametre registre 4 og 5, og efterfølgende køre syscall function
 read string. Uheldigvis uden det helt ønskede resultat.
+\\
+\\
+Et andet problem er referencer i en nested whileløkke. Hvis man betragter
+følgende 100-kode så får vi en forkert opførelse.
+
+\begin{minted}[bgcolor=bg,linenos]{c}
+int main(){
+
+    int *a;
+    int i,j,k;
+
+    a = walloc(3);
+
+    a[0] = 1;
+    a[1] = 2;
+    a[2] = 3;
+
+    i = 0;
+    while(i<3){
+        j = 0;
+        while(j<3){
+            k = a[j];
+            a[j] = a[j+1];
+            a[j+1] = k;
+            j = j + 1;
+        }
+        i = i + 1;
+    }
+}
+\end{minted}
+
+Selvom programmet ikke giver så meget mening så er det stadig korrekt, men vores
+oversatte assembler giver ikke de korrekte værdier i det inderste whileloop.
+
+Hvis man ser på linje $16$ bør $k$ være lig med $1$ i første iteration, og
+$a[j]$ bør være lig med $2$ i linje $17$ efter første iteration. Dette er også
+korrekt men det viser sig at i næste iteration af det nestede loop, har $a[j]$
+den samme værdi som det havde i iterationen før, mens $a[j+1]$ har den værdi der
+svare til at $j$ er en større og der bliver lagt en til.
+
+Det lader til at linje $18$ er med til at skabe problemet, for hvis vi
+udkommenterer denne så får $a[j]$ den forventede værdi i forhold til
+iterationen. Problemet synes at ligge i vores implementation af while eller
+block i compileren.
 
 \section{Efterskrift}
 
