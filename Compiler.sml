@@ -471,7 +471,8 @@ struct
 			     ("balloc",([Type.Int],Type.CharRef)),
                              ("getint",([],Type.Int)),
 			     ("putint",([Type.Int],Type.Int)),
-		             ("putstring",([Type.CharRef],Type.CharRef))]
+		             ("putstring",([Type.CharRef],Type.CharRef)),
+			     ("getstring",([Type.Int], Type.CharRef))]
 
       val funsCode = List.concat (List.map (compileFun ftable) funs)
     in
@@ -502,7 +503,16 @@ struct
 
 
      Mips.LABEL "getstring", (* getstring not implemented *)
-     
+     Mips.MOVE ("4","2"),
+     Mips.LI ("2","9"),
+     Mips.SYSCALL,
+     Mips.MOVE ("5","4"),
+     Mips.MOVE ("4","2"),
+     Mips.LI ("2","8"),
+     Mips.SYSCALL,             (* read_string function *)
+     Mips.MOVE ("2","4"),
+     Mips.JR (RA,[]),    
+
      Mips.LABEL "putstring", (* putstring not implemented *)
 
      Mips.ADDI(SP,SP,"-8"),
@@ -513,10 +523,10 @@ struct
         Mips.LABEL "put_char_loop",
           Mips.LI ("2","4"),       (* print reg 2 *)
           Mips.SYSCALL,            (* write  *)
-          Mips.LW("7","4","0"),    (* load the adress in to reg 7 *)
+          Mips.LW("8","4","0"),    (* load the adress in to temp reg 8 *)
           Mips.ADDI("4","4","4"),   (* increment *)
      
-     Mips.BNE("7","0","put_char_loop"), (* if reg 7 = 0 end, else print next word *)
+     Mips.BNE("8","0","put_char_loop"), (* if temp reg 8  = 0 end, else print next word *)
      
          Mips.LI ("2","4"),       (* write new line syscall *)
          Mips.LA("4","_cr_"),
