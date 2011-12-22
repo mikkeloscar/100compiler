@@ -281,8 +281,46 @@ I \texttt{checkProg} samles typetjekningen, og de inbyggede funktioner tilføjes
 funktionstabellen.
 
 \section{Kodegenerering}
+Efter programmet er lexet, parset, og tjekket for typefejl er man klar til at
+oversætte det til asmbler. Dette gøres i vores oversætter ved at lave en liste
+at \texttt{Mips}-intruktioner defineret i følge SML-Mips-modulet.
 
+For at gøre oversætteret i stand til at oversætte alle sprogkonstruktioner i
+100, har vi tilføjet en rækker cases i \texttt{Compiler.sml}.
 
+For det første har vi tilføjet typen \texttt{Char}. Det har vi gjort ved at
+tilføje en \texttt{CharConst} til \texttt{compileExp}.
+
+\begin{minted}[bgcolor=bg]{sml}
+| S100.CharConst (c,pos) =>
+     (Type.Char,[Mips.LI (place, makeConstChar c)])
+\end{minted}
+
+funtionen \texttt{makeConstChar} tager imod en \texttt{Char} laver den om til en
+string i formatet \texttt{"'c'"}, således at den kan bruges direkte i Mips.
+
+Foruden \texttt{Char} har vi implementeret referencer i form at \texttt{IntRef}
+og \texttt{CharRef}.
+
+For det første har vi implementeret \texttt{Blocks}. 
+
+\begin{minted}[bgcolor=bg]{sml}
+| S100.Block (d,s,p) => 
+    let
+       val l1 = "_block_"^newName()
+       val (parcode,d_vtable,stackParams) (* move parameters to arguments *)
+        = moveArgs d 2
+       val statlist = List.map 
+             (fn st => compileStat st (d_vtable @ vtable) ftable
+       exitLabel) s
+       val stats = foldl (fn (x,y) => y @ x) (hd statlist) (tl statlist)
+       val (stats1, _, maxr,spilled)  (* call register allocator *)
+         = RegAlloc.registerAlloc
+              (parcode @ stats) [] 2 maxCaller maxReg 0
+    in
+      stats1
+    end
+\end{minted}
 
 \subsection{Mangler ved implementationen}
 
