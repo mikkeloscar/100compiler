@@ -456,7 +456,9 @@ svare til at $j$ er en større og der bliver lagt en til.
 Det lader til at linje $18$ er med til at skabe problemet, for hvis vi
 udkommenterer denne så får $a[j]$ den forventede værdi i forhold til
 iterationen. Problemet synes at ligge i vores implementation af while eller
-block i compileren.
+block i compileren. Dette giver os problemer når vi forsøger at test det
+vedlagte \texttt{sort.100} program. Programmet køre men elementerne bliver ikke
+sorteret grundet denne fejl.
 
 \section{Efterskrift}
 
