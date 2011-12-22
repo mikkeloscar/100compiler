@@ -79,11 +79,26 @@
 \newpage 
 
 \section*{Indledning}
-Denne rapport er en del af godkendelsesopgaven til kurset Oversættere på Datalogisk Institut, ved Københavns Universitet 2011. Opgaven beskriver hvordan gruppen har implementeret en oversætter til programmingssproget \texttt{100}. Oversætteren er skrevet i \texttt{SML}, og væsentligste overvejselser gruppen har gjort sig, samt programuddrag medtages i denne rapport. Rapporten skal læses sideløbende med selve oversætteren der er afleveret sammen med rapporten i en \texttt{zip} fil.
+Denne rapport er en del af godkendelsesopgaven til kurset Oversættere på
+Datalogisk Institut, ved Københavns Universitet 2011. Opgaven beskriver hvordan
+gruppen har implementeret en oversætter til programmingssproget \texttt{100}.
+Oversætteren er skrevet i \texttt{SML}, og væsentligste overvejselser gruppen
+har gjort sig, samt programuddrag medtages i denne rapport. Rapporten skal læses
+sideløbende med selve oversætteren der er afleveret sammen med rapporten i en
+\texttt{zip} fil.
 
 \section{Lexer}
-Leksikalsk analyse er fortolkningen af en givent tekst input, til \texttt{tokens}. Lexeren, der foretager den leksikalske analyse består af en række regler af regulære udtryk der afgør hvad token skal forstås som. Lexeren består foruden de regulære udtryk af en liste af nøgleord, der altid ser ens ud. Vi har til denne liste tilføjet nøgleordet \textit{while}, da denne ikke var at finde i det oprindelige skelet. Regelsættet er at finde i \texttt{Lexer.lex}\\
-Foruden at have tilføjet simple regulære udtryk til at matche \texttt{*}, \texttt{[}, \texttt{]}, \texttt{\{}, \texttt{\}} og \texttt{==} har vi tilføjet to regulære udtryk til at matche String og Char. Det regulære udtryk, samt fjernelsen af de to anførselstegn rundt om Stringen udgør vores leksikalske analyse af string (ligeledes for char), og er implementeret således:\\
+Leksikalsk analyse er fortolkningen af en givent tekst input, til
+\texttt{tokens}. Lexeren, der foretager den leksikalske analyse består af en
+række regler af regulære udtryk der afgør hvad token skal forstås som. Lexeren
+består foruden de regulære udtryk af en liste af nøgleord, der altid ser ens ud.
+Vi har til denne liste tilføjet nøgleordet \textit{while}, da denne ikke var at
+finde i det oprindelige skelet. Regelsættet er at finde i \texttt{Lexer.lex}\\
+Foruden at have tilføjet simple regulære udtryk til at matche \texttt{*},
+\texttt{[}, \texttt{]}, \texttt{\{}, \texttt{\}} og \texttt{==} - har vi
+tilføjet to regulære udtryk til at matche String og Char. Det regulære udtryk,
+samt fjernelsen af de to anførselstegn rundt om Stringen udgør vores leksikalske
+analyse af string (ligeledes for char), og er implementeret således:\\
 
 \begin{minted}[bgcolor=bg]{sml}
  | `"` ([^`\` `"` `'`] | `\` ([^`a`] | `a`))+ `"`
@@ -93,18 +108,29 @@ Foruden at have tilføjet simple regulære udtryk til at matche \texttt{*}, \tex
        | SOME s => Parser.CSTRING (s, getPos lexbuf) }
 \end{minted}	 
     
-En char eller string kan indeholde hhv. et eller flere tegn med ASCII kode mellem 32 og 126 undtagen tegnene \texttt{’} \texttt{,} \texttt{"} og \textbackslash. Dette er lavet ved at definere en sekvens af alle tegn undtagen disse, eller en sekvens indeholdende alle tegn (er lavet ved en sekvens af alt undtagen 'a', eller 'a'), med et escape tegn foran. For char skal der være én af disse, og for string en eller flere.
+En char eller string kan indeholde hhv. et eller flere tegn med ASCII kode
+mellem 32 og 126 undtagen tegnene ’, " og \. Dette er lavet ved at definere en
+sekvens af alle tegn undtagen disse, eller en sekvens indeholdende alle tegn (er
+lavet ved en sekvens af alt undtagen 'a', eller 'a'), med et escape tegn foran.
+For char skal der være én af disse, og for string en eller flere.
     
     
 \section{Parser}
-For at forbinde de tokens der er fortolket af Lexeren bruges en Parser. Denne syntaxanalyserer, og terminerer oversættelsen af et 100-program, hvis der findes syntax-fejl. I \texttt{Parser.grm} findes grammatikken for sproget, og de manglende elementer fra det udleverede skelet er implementeret. Stats fra grammatikken er lavet ved at kombinere Stat til en liste, og er implementeret således:\\
+For at forbinde de tokens der er fortolket af Lexeren bruges en Parser. Denne
+syntaxanalyserer, og terminerer oversættelsen af et 100-program, hvis der findes
+syntax-fejl. I \texttt{Parser.grm} findes grammatikken for sproget, og de
+manglende elementer fra det udleverede skelet er implementeret. Stats fra
+grammatikken er lavet ved at kombinere Stat til en liste, og er implementeret
+således:\\
 
 \begin{minted}[bgcolor=bg]{sml}
 Stats :                 { [] }
       | Stat Stats      { $1 :: $2 }
 \end{minted}
 
-Vi har derudover ændret navnet fra \texttt{S100.Lookup} til \texttt{S100.Index}, for at undgå forvirring af lookup i symboltabel. Stats bruges i \texttt{S100.Block} da denne indeholder en stat list:\\
+Vi har derudover ændret navnet fra \texttt{S100.Lookup} til \texttt{S100.Index},
+for at undgå forvirring af lookup i symboltabel. Stats bruges i
+    \texttt{S100.Block} da denne indeholder en stat list:\\
 
 \begin{minted}[bgcolor=bg]{sml}
 Lval : ...
@@ -113,7 +139,10 @@ Lval : ...
                         { S100.Block ($2,$3,$1) }
 \end{minted}
 
-Der er også implementeret \texttt{REF ID} til \texttt{Sid}, og til \texttt{Lval} er der tilføjet \texttt{ID REF} og \texttt{ID LSBRACKET Exp RSBRACKET}, sidstnævnte til at passe med et index-check af en pointer, eksempeltvis \texttt{a[2]}.
+Der er også implementeret \texttt{REF ID} til \texttt{Sid}, og til \texttt{Lval}
+er der tilføjet \texttt{ID REF} og \texttt{ID LSBRACKET Exp RSBRACKET},
+sidstnævnte til at passe med et index-check af en pointer, eksempeltvis
+\texttt{a[2]}.
 
 \section{Typechecker}
 Efter et program er godkendt af lexeren og parseren, kan der dog stadig forefindes fejl. I typecheckeren tjekker vi om datatypener, variablene og sprogkonstruktionerne stemmer overens med brugen af udtryk i programmet. For at understøtte typchekeren har vi implementeret 4 forskellige datatyper, der rundt omrking i typecheckeren bruges til at holde styr på hvilke typer variable er tildelt og hvilke typer der er lovlige for hvilke operationer, samt hvilke typer der returneres. Funktionerne \texttt{convertType} og \texttt{convertTypeRef} bruges til at oversætte de ækvivalenter typer i \texttt{S100.sml} til datatypen implementeret i typecheckeren. \\
