@@ -298,8 +298,46 @@ tilføje en \texttt{CharConst} til \texttt{compileExp}.
 funtionen \texttt{makeConstChar} tager imod en \texttt{Char} laver den om til en
 string i formatet \texttt{"'c'"}, således at den kan bruges direkte i Mips.
 
-Foruden \texttt{Char} har vi implementeret referencer i form at \texttt{IntRef}
-og \texttt{CharRef}.
+Foruden \texttt{Char} har vi implementeret referencer i form af \texttt{IntRef}
+og \texttt{CharRef}. Lookup (som vi har kaldt Index) og de andre operationer på
+referencer er implementeret meget tæt på det der er beskrevet i
+\cite{Mogensen11} side 136. En væsentlig forskel er at vi også returnere en
+type, så vi kan holde styr på om det er en \texttt{IntRef} eller en
+\texttt{CharRef} senere hen i oversættelsen. I forbindelse med referencer har vi
+også inplemenret en \texttt{StringConst} som i bund og grund er en
+\texttt{CharRef} der oprettes automatisk når man laver en string i programmet.
+
+\begin{minted}[bgcolor=bg]{sml}
+| S100.StringConst (s,pos) =>
+let
+    val size = String.size(s)
+    val t = "_string_"^newName()
+    fun saveMem [] = []
+      | saveMem [c] = [Mips.ADDI (t,"0", makeConstChar c),
+                       Mips.SW (t,"2","0")]
+      | saveMem (c::cs) = [Mips.ADDI (t,"0", makeConstChar c),
+                           Mips.SW (t,"2","0"),
+                           Mips.ADDI ("2", "2", "4")] @ saveMem cs
+in 
+  (* Use balloc to allocate space *)
+  (Type.CharRef,
+    [Mips.ADDI ("2","0",Int.toString(size+1)), (* nullbyte fix *)
+     Mips.JAL ("balloc",[]), 
+     Mips.ADDI (place, "2", "0")] @
+     saveMem (explode(s)) @ [Mips.ADDI ("2","2","4"),
+                             Mips.ADDI (t, "0", "0"),
+                             Mips.SW (t,"2","0")])              
+           
+end
+\end{minted}
+
+Vi starter med at finde længden af strengen så vi er klar over hvor meget plads
+vi skal allokere (bemærk at vi allokere en ekstra
+plads for at have plads til en NUL-byte så vi ved hvornår strengen stopper hvis
+vi sidenhen skal læse den). Pladsen allokerer vi ved hjælp af funktionen
+\texttt{balloc} som vi selv har implementeret. Når pladsen er allokeret gemmer
+vi karakterene en efter en, ved hjælp af funktionen \texttt{saveMem}, den sidste
+karakter er som sagt en NUL-byte. 
 
 For det første har vi implementeret \texttt{Blocks}. 
 
@@ -323,7 +361,13 @@ For det første har vi implementeret \texttt{Blocks}.
 
 
 \subsection{Mangler ved implementationen}
-Selvom de fleste krav til oversætteren er opfyldt, har vores oversættere desværre et par svagheder. Den indbyggede funktion \texttt{getstring() der returnerer en hob-allokeret string, der indeholder op til n−1 tegn læst fra standard input, arter sig ikke helt eksemplarisk. Forsøger vi at læse fra standard input med indholdet af den udleverede fil \texttt{copy.in} der indeholder stregnen \texttt{Husk at teste jeres compiler ordentligt!}, og efterfølgende skrive dette ud, får vi følgende output:\\
+% Selvom de fleste krav til oversætteren er opfyldt, har vores oversættere
+% desværre et par svagheder. Den indbyggede funktion \texttt{getstring() der
+% returnerer en hob-allokeret string, der indeholder op til n−1 tegn læst fra
+% standard input, arter sig ikke helt eksemplarisk. Forsøger vi at læse fra
+% standard input med indholdet af den udleverede fil \texttt{copy.in} der
+% indeholder stregnen \texttt{Husk at teste jeres compiler ordentligt!}, og
+% efterfølgende skrive dette ud, får vi følgende output:\\
 
 \begin{quote}
 Husk at teste jeres compiler ordentligt!
@@ -338,7 +382,10 @@ entligt!
 igt!
 \end{quote}
 
-Selvom den oprindelige string er indeholdt i outputtet, ses det tydeligt at den gentages i forskellige længder. For ovenstående, har vi kørt kommandoen \texttt{putstring(getstring(100));}, der altså skulle have termineret en smule tidligere. Funktionen skrevet i Mips, assembler er skrevet således:
+Selvom den oprindelige string er indeholdt i outputtet, ses det tydeligt at den
+gentages i forskellige længder. For ovenstående, har vi kørt kommandoen
+\texttt{putstring(getstring(100));}, der altså skulle have termineret en smule
+tidligere. Funktionen skrevet i Mips, assembler er skrevet således:
 
 
 \begin{minted}[bgcolor=bg]{sml}
@@ -352,7 +399,9 @@ Selvom den oprindelige string er indeholdt i outputtet, ses det tydeligt at den 
  Mips.JR (RA, []),
 \end{minted}
 
-Vi har forsøgt at ligge de 2 parametre: størrelsen af strengen, samt adressen i de 2 paramtre registre 4 og 5, og efterfølgende køre syscall function read_string. Uheldigvis uden det helt ønskede resultat.
+Vi har forsøgt at ligge de 2 parametre: størrelsen af strengen, samt adressen i
+de 2 paramtre registre 4 og 5, og efterfølgende køre syscall function
+read string. Uheldigvis uden det helt ønskede resultat.
 
 
 
