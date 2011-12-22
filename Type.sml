@@ -60,6 +60,8 @@ struct
          (Int,Int) => Int
        | (Int,IntRef) => IntRef
        | (Int,CharRef) => CharRef
+       | (IntRef, Int) => IntRef
+       | (CharRef, Int) => CharRef
        | (_,_) => raise Error ("Type mismatch in assignment",p))
 
      | S100.Minus (e1,e2,p) =>
