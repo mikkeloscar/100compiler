@@ -81,9 +81,41 @@ fib_exit:
 	addi	$29, $29, 16
 	jr	$31
 walloc:
+	sll	$2, $2, 2
+	addi	$4, $2, 0
+	ori	$2, $0, 9
+	syscall
+	jr	$31
 balloc:
+	sll	$2, $2, 2
+	addi	$4, $2, 0
+	ori	$2, $0, 9
+	syscall
+	jr	$31
 getstring:
+	addi	$4, $0, 8
+	addi	$5, $0, 10
+	ori	$2, $0, 8
+	syscall
+	jr	$31
 putstring:
+	addi	$29, $29, -8
+	sw	$2, 0($29)
+	sw	$4, 4($29)
+	ori	$4, $2, 0
+put_char_loop:
+	ori	$2, $0, 4
+	syscall
+	lw	$8, 0($4)
+	addi	$4, $4, 4
+	bne	$8, $0, put_char_loop
+	ori	$2, $0, 4
+	la	$4, _cr_
+	syscall
+	lw	$2, 0($29)
+	lw	$4, 4($29)
+	addi	$29, $29, 8
+	jr	$31
 putint:
 	addi	$29, $29, -8
 	sw	$2, 0($29)

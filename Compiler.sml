@@ -472,7 +472,7 @@ struct
                              ("getint",([],Type.Int)),
 			     ("putint",([Type.Int],Type.Int)),
 		             ("putstring",([Type.CharRef],Type.CharRef)),
-			     ("getstring",([Type.Int], Type.CharRef))]
+			     ("getstring",([Type.Int],Type.CharRef))]
 
       val funsCode = List.concat (List.map (compileFun ftable) funs)
     in
@@ -494,7 +494,7 @@ struct
 
      Mips.JR (RA,[]),
 
-     Mips.LABEL "balloc", (* balloc not implemented *)
+     Mips.LABEL "balloc", 
      Mips.SLL("2","2","2"), (* mult by 4 *)
      Mips.ADDI("4","2","0"), (* add parameter to input *)
      Mips.LI("2","9"), (* syscall sbrk *)
@@ -502,18 +502,15 @@ struct
      Mips.JR (RA,[]),
 
 
-     Mips.LABEL "getstring", (* getstring not implemented *)
-     Mips.MOVE ("4","2"),
-     Mips.LI ("2","9"),
+     Mips.LABEL "getstring", 
+     Mips.ADDI("4","0","8"),
+     Mips.ADDI("5","0","10"),
+     Mips.LI("2","8"),
      Mips.SYSCALL,
-     Mips.MOVE ("5","4"),
-     Mips.MOVE ("4","2"),
-     Mips.LI ("2","8"),
-     Mips.SYSCALL,             (* read_string function *)
-     Mips.MOVE ("2","4"),
-     Mips.JR (RA,[]),    
+     Mips.JR (RA,[]),
 
-     Mips.LABEL "putstring", (* putstring not implemented *)
+
+     Mips.LABEL "putstring", 
 
      Mips.ADDI(SP,SP,"-8"),
      Mips.SW ("2",SP,"0"),    (* save used registers *)
