@@ -360,9 +360,20 @@ For det første har vi implementeret \texttt{Blocks}.
 
 
 \subsection{Indbyggede funktioner}
-Vi har implementeret 4 
+Vi har implementeret de indbyggede funktioner sproget 100 har tilgængelig, foruden de allerede udleverede indbyggede funktioner. Disse er: \texttt{walloc()}, \texttt{balloc()}, \texttt{getstring()} og \texttt{putstring()}. Koden for disse er tilføjet i bunden af \texttt{Compiler.sml}. Et eksmepel på dette er \texttt{walloc()} der taget et helttal som argument og returnerer en reference til mindst det antalmaskinord på hoben, som int*.\\
 
+\begin{minted}[bgcolor=bg]{sml}
+  Mips.SLL("2","2","2"),       (* mult by 4 *)   
+  Mips.ADDI("4","2","0"),      (* add parameter to input *) 
+  Mips.LI("2","9"),            (* syscall sbrk *)
+  Mips.SYSCALL,                (* execute *)
+  Mips.JR (RA,[]),
+\end{minted}
 
+For at wordalligne referencen er der ganget med 4, og ellers flytter vi bare inputtet fra kaldet af \texttt{walloc()} til register 4 som syscall tager som parameter. Her kaldes system funktion 9,
+der returnerer en reference til den hukommelses block. Sidst kalder vi jump register der hopper tilbage til hovedfunktionen.\\
+
+I putstring() har vi lavet et loop der itereres over hver gang den næste character ikke er en nulbyte. Således skriver vi en string ud til standart out. Vores getstring() er dog mangelfuld. Dette er beskrevet i afsnittet 'Mangler ved implementationen'.
 
 
 \subsection{Mangler ved implementationen}
