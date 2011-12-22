@@ -360,7 +360,13 @@ For det første har vi implementeret \texttt{Blocks}.
 
 
 \subsection{Indbyggede funktioner}
-Vi har implementeret de indbyggede funktioner sproget 100 har tilgængelig, foruden de allerede udleverede indbyggede funktioner. Disse er: \texttt{walloc()}, \texttt{balloc()}, \texttt{getstring()} og \texttt{putstring()}. Koden for disse er tilføjet i bunden af \texttt{Compiler.sml}. Et eksmepel på dette er \texttt{walloc()} der taget et helttal som argument og returnerer en reference til mindst det antalmaskinord på hoben, som int*.\\
+Vi har implementeret de indbyggede funktioner sproget 100 har tilgængelig,
+foruden de allerede udleverede indbyggede funktioner. Disse er:
+\texttt{walloc()}, \texttt{balloc()}, \texttt{getstring()} og
+\texttt{putstring()}. Koden for disse er tilføjet i bunden af
+\texttt{Compiler.sml}. Et eksmepel på dette er \texttt{walloc()} der taget et
+helttal som argument og returnerer en reference til mindst det antalmaskinord på
+hoben, som int*.\\
 
 \begin{minted}[bgcolor=bg]{sml}
   Mips.SLL("2","2","2"),       (* mult by 4 *)   
@@ -370,16 +376,27 @@ Vi har implementeret de indbyggede funktioner sproget 100 har tilgængelig, foru
   Mips.JR (RA,[]),
 \end{minted}
 
-For at wordalligne referencen er der ganget med 4, og ellers flytter vi bare inputtet fra kaldet af \texttt{walloc()} til register 4 som syscall tager som parameter. Her kaldes system funktion 9,
-der returnerer en reference til den hukommelses block. Sidst kalder vi jump register der hopper tilbage til hovedfunktionen.\\
+For at wordalligne referencen er der ganget med 4, og ellers flytter vi bare
+inputtet fra kaldet af \texttt{walloc()} til register 4 som syscall tager som
+parameter. Her kaldes system funktion 9,
+der returnerer en reference til den hukommelses block. Sidst kalder vi jump
+register der hopper tilbage til hovedfunktionen.\\
 
-I putstring() har vi lavet et loop der itereres over hver gang den næste character ikke er en nulbyte. Således skriver vi en string ud til standart out. Vores getstring() er dog mangelfuld. Dette er beskrevet i afsnittet 'Mangler ved implementationen'.
+I putstring() har vi lavet et loop der itereres over hver gang den næste
+character ikke er en nulbyte. Således skriver vi en string ud til standart out.
+Vores getstring() er dog mangelfuld. Dette er beskrevet i afsnittet 'Mangler ved
+implementationen'.
 
 
 \subsection{Mangler ved implementationen}
 
 Selvom de fleste krav til oversætteren er opfyldt, har vores oversættere
-desværre et par svagheder. Den indbyggede funktion \texttt{getstring()} der returnerer en hov-allokeret string, der indeholder op til n-1 tegn læst fra standard input, arter sig ikke helt eksemplarisk. Forsøger vi at læse fra standard input med indholdet af den udleverede fil \texttt{copy.in} der indeholder stregnen \texttt{Husk at teste jeres compiler ordentligt!}, og efterfølgende skrive dette ud, får vi følgende output:\\
+desværre et par svagheder. Den indbyggede funktion \texttt{getstring()} der
+returnerer en hov-allokeret string, der indeholder op til n-1 tegn læst fra
+standard input, arter sig ikke helt eksemplarisk. Forsøger vi at læse fra
+standard input med indholdet af den udleverede fil \texttt{copy.in} der
+indeholder stregnen \texttt{Husk at teste jeres compiler ordentligt!}, og
+efterfølgende skrive dette ud, får vi følgende output:\\
 
 \begin{quote}
 Husk at teste jeres compiler ordentligt! \\
@@ -456,7 +473,9 @@ svare til at $j$ er en større og der bliver lagt en til.
 Det lader til at linje $18$ er med til at skabe problemet, for hvis vi
 udkommenterer denne så får $a[j]$ den forventede værdi i forhold til
 iterationen. Problemet synes at ligge i vores implementation af while eller
-block i compileren.
+block i compileren. Dette giver os problemer når vi forsøger at test det
+vedlagte \texttt{sort.100} program. Programmet køre men elementerne bliver ikke
+sorteret grundet denne fejl.
 
 \section{Efterskrift}
 Foruden denne rapport findes vores oversætter i filen \texttt{100compiler.zip}. Vi har flyttet testfilerne til mappen /programs/, for ikke at blande disse med oversætterprogramfilerne.
