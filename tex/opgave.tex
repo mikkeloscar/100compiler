@@ -145,8 +145,19 @@ sidstnævnte til at passe med et index-check af en pointer, eksempeltvis
 \texttt{a[2]}.
 
 \section{Typechecker}
-Efter et program er godkendt af lexeren og parseren, kan der dog stadig forefindes fejl. I typecheckeren tjekker vi om datatypener, variablene og sprogkonstruktionerne stemmer overens med brugen af udtryk i programmet. For at understøtte typchekeren har vi implementeret 4 forskellige datatyper, der rundt omrking i typecheckeren bruges til at holde styr på hvilke typer variable er tildelt og hvilke typer der er lovlige for hvilke operationer, samt hvilke typer der returneres. Funktionerne \texttt{convertType} og \texttt{convertTypeRef} bruges til at oversætte de ækvivalenter typer i \texttt{S100.sml} til datatypen implementeret i typecheckeren. \\
-Funktionen \texttt{checkExp} tjekker om et expression er lovligt, samt hvilken type det bør returnere. Dette ses bedst med et eksempel fra \texttt{checkExp}, der tjekker om en plus-operation er lovlig. Der checkes på de mønstre defineret i opgaven, og der returneres den type den givne operation ville afgive:\\
+Efter et program er godkendt af lexeren og parseren, kan der stadig
+forefindes fejl. I typecheckeren tjekker vi om datatypener, variablene og
+sprogkonstruktionerne stemmer overens med brugen af udtryk i programmet. For at
+understøtte typchekeren har vi implementeret 4 forskellige datatyper, der rundt
+omrking i typecheckeren bruges til at holde styr på hvilke typer variable er
+tildelt og hvilke typer der er lovlige for hvilke operationer, samt hvilke typer
+der returneres. Funktionerne \texttt{convertType} og \texttt{convertTypeRef}
+bruges til at oversætte de ækvivalenter typer i \texttt{S100.sml} til datatypen
+implementeret i typecheckeren. \\
+Funktionen \texttt{checkExp} tjekker om et expression er lovligt, samt hvilken
+type det bør returnere. Dette ses bedst med et eksempel fra \texttt{checkExp},
+der tjekker om en plus-operation er lovlig. Der checkes på de mønstre defineret
+i opgaven, og der returneres den type den givne operation ville afgive:\\
 
 \begin{minted}[bgcolor=bg]{sml}
   | S100.Plus (e1,e2,p) =>
@@ -160,9 +171,20 @@ Funktionen \texttt{checkExp} tjekker om et expression er lovligt, samt hvilken t
     | (_,_) => raise Error ("Type mismatch in assignment",p))
 \end{minted}
 
-Rammer funktionen ingen af de tilladte type-kombinationer, kaste en fejl, da der derved at forsøg en addition med et ulovligt typevalg. \\
+Rammer funktionen ingen af de tilladte type-kombinationer, kastes en fejl, da der
+derved er forsøgt en addition med et ulovligt typevalg. \\
 
-I funktionen \texttt{checkLval} tjekkes de 3 tilladte \textit{Lval} grammatikken for 100 understøtter; \textbf{id}, \textbf{id}* samt \textbf{id}[\textit{Exp}]. Der kigges i symboltabellen, og hvis der findes et resultat returneres dette, ellers kastes en fejl om dette. I case-mønstret for \texttt{S100.Deref} kaster vi en reference til en type, selvom typen der findes i symboltabellen er en af de to primitivite typer \textit{Char} eller \textit{Int}. Dette gøres da typen af en \texttt{Deref} altid vil være en referece. I mønstret for \texttt{S100.Index}, checkes først om \textbf{id}'et overhovedet er en reference, og dernæst sendes typen videre som en primitiv type af dens referencetype. Dette ses på følgende implementation: \\
+I funktionen \texttt{checkLval} tjekkes de 3 tilladte \textit{Lval}. Grammatikken
+for 100 understøtter; \textbf{id}, \textbf{id}* samt \textbf{id}[\textit{Exp}].
+Der kigges i symboltabellen, og hvis der findes et resultat returneres
+dette, ellers kastes en fejl om dette. I case-mønstret for
+\texttt{S100.Deref} kaster vi en reference til en type, selvom typen der
+findes i symboltabellen er en af de to primitivite typer \textit{Char} eller
+\textit{Int}. Dette gøres da typen af en \texttt{Deref} altid vil være en
+referece. I mønstret for \texttt{S100.Index}, checkes først om
+\textbf{id}'et overhovedet er en reference, og dernæst sendes typen videre
+som en primitiv type af dens referencetype. Dette ses på følgende
+implementation: \\
 
 \begin{minted}[bgcolor=bg]{sml}
   | S100.Index (s,e,p) =>
@@ -175,7 +197,20 @@ I funktionen \texttt{checkLval} tjekkes de 3 tilladte \textit{Lval} grammatikken
 
 Denne case kaster en fejl hvis det ikke er en referencetype der laves lookup på, eller hvis den ikke findes. Ellers returneres typen som reference-type.\\
 
-Funktionen \texttt{checkStat} tjekker om en \textit{Stat} er typemæssigt i orden, og returnerer en unit-type \textbf{()} såfremt denne ikke indeholder fejl. Flere at de i grammatikken nævnte grammatikker kan indeholde flere Stats, da grammatikken er rekursiv. Dette betyder at eksempeltvis et IF-statement kan indeholder flere IF og WHILE-statements. Dette er i typecheckeren håndteret ved at lave cases for hver Stat, samt rekursivt lade disse køre \texttt{checkStat}. En block er et statement der inholder sit eget \textit{scope} - altså hvor tildelinger af eksmepeltvis variable ikke er synlige uden for scopet. Block'en startes med '\texttt{\{}' og sluttes med '\texttt{\}}', men da IF og WHILE-statements ofte konstrueres ved brug af disse tegn, har vi sørget for at udtryk inde i disse, ikke medregnes som normale scopes. En IF-ELSE kan indeholde en block i enten begge tilfælge (både IF- og ELSEdelen), i en af dem, eller ingen af dem. Dette er håndteret ved patternmatching i casen for \texttt{S100.IfElse}. Block-statementet er implemteret således:\\
+Funktionen \texttt{checkStat} tjekker om en \textit{Stat} er typemæssigt i
+orden, og returnerer en unit-type \textbf{()} såfremt denne ikke indeholder
+fejl. Flere at de i grammatikken nævnte grammatikker kan indeholde flere Stats,
+da grammatikken er rekursiv. Dette betyder at eksempeltvis et IF-statement kan
+indeholder flere IF og WHILE-statements. Dette er i typecheckeren håndteret ved
+at lave cases for hver Stat, samt rekursivt lade disse køre \texttt{checkStat}.
+En block er et statement der inholder sit eget \textit{scope} - altså hvor
+tildelinger af eksmepeltvis variable ikke er synlige uden for scopet. Block'en
+startes med '\texttt{\{}' og sluttes med '\texttt{\}}', men da IF og
+WHILE-statements ofte konstrueres ved brug af disse tegn, har vi sørget for at
+udtryk inde i disse, ikke medregnes som normale scopes. En IF-ELSE kan indeholde
+en block i enten begge tilfælde (både IF- og ELSEdelen), i en af dem, eller
+ingen af dem. Dette er håndteret ved patternmatching i casen for
+\texttt{S100.IfElse}. Block-statementet er implemteret således:\\
 
 \begin{minted}[bgcolor=bg]{sml}
   | S100.Block (d,stats,p) =>
@@ -188,18 +223,35 @@ Funktionen \texttt{checkStat} tjekker om en \textit{Stat} er typemæssigt i orde
     end
 \end{minted}
 
-En block indeholder en liste af stats, og \texttt{checkStat}-funktionen køres på hver af disse, med List.map. Vi sørger for at både blockens scope, samt programmets øvrigte scope er tilgængeligt inde i blocken.\\
+En block indeholder en liste af stats, og \texttt{checkStat}-funktionen køres på
+hver af disse, med List.map. Vi sørger for at både blockens scope, samt
+programmets øvrigte scope er tilgængeligt inde i blocken.\\
 
-Vi har i typecheckeren implenteret en funktion der tjekker om et statement indeholder et return-statement i alle veje (hvis dette statement indeholder flere statements). Eksempeltvis kan en funktion godt indeholde et return-statement, men uden sikkerhed for at det altid vil kunne nås, hvis det eksempeltvis er indeholdt i et \texttt{WHILE}-loop. Denne funktion returnerer en boolsk-værdi, hvorvidt det undersøgte statement  indeholder et return i alle veje eller ej. Funktionen hedder \texttt{checkFunDec}, og kaldes fra \texttt{checkProg}. Funktionen laver en case over inputtet og tjekker hvert af disses muligheder igennem patternmatching og rekursion. Hvis statementet er et \texttt{return} er den trivielt sand. Hvis det er en \texttt{if} eller \texttt{while} returneres falsk, da disse aldrig med sikkerhed vil afvikles. Hvis det er et \texttt{if-else} tjekkes om begge af disse indeholder et \texttt{return}. Hvis det er en \texttt{block} tjekkes om denne statlist indeholder en \texttt{return} i alle veje. Til at bistå denne process har vi skabt funktionen \texttt{exists} der tjekker om en liste af boolske værdier indeholder et \texttt{true}.
+Vi har i typecheckeren implenteret en funktion der tjekker om et statement
+indeholder et return-statement i alle veje (hvis dette statement indeholder
+flere statements). Eksempeltvis kan en funktion godt indeholde et
+return-statement, men uden sikkerhed for at det altid vil kunne nås, hvis det
+eksempeltvis er indeholdt i et \texttt{WHILE}-loop. Denne funktion returnerer en
+boolsk-værdi, hvorvidt det undersøgte statement  indeholder et return i alle
+veje eller ej. Funktionen hedder \texttt{checkFunDec}, og kaldes fra
+\texttt{checkProg}. Funktionen laver en case over inputtet og tjekker hvert af
+disses muligheder igennem patternmatching og rekursion. Hvis statementet er et
+\texttt{return} er den trivielt sand. Hvis det er en \texttt{if} eller
+\texttt{while} returneres falsk, da disse aldrig med sikkerhed vil afvikles.
+Hvis det er et \texttt{if-else} tjekkes om begge af disse indeholder et
+\texttt{return}. Hvis det er en \texttt{block} tjekkes om denne statlist
+indeholder en \texttt{return} i alle veje. Til at bistå denne process har vi
+skabt funktionen \texttt{exists} der tjekker om en liste af boolske værdier
+indeholder et \texttt{true}.
 
 \begin{minted}[bgcolor=bg]{sml}
     (* checks if a boolean-list contains a 'true' *)
     fun exists [] = false
-      | exists [x] = x
       | exists (x::xs) = x orelse exists xs
 \end{minted}
 
-Funktionen mappes på en statlist hvis et statement indeholder sådan en, og exists beretter om indeholdet af en sandhedsværdi:\\
+Funktionen mappes på en statlist hvis et statement indeholder sådan en, og
+exists beretter om indeholdet af en sandhedsværdi:\\
 
 \begin{minted}[bgcolor=bg]{sml}
   | S100.Block (d,se,p) =>
@@ -213,16 +265,20 @@ Funktionen mappes på en statlist hvis et statement indeholder sådan en, og exi
 \end{minted}
 
 
-I \texttt{checkFunDec} funktionen tjekker vi om returtypen for en funktion er den samme som, den definerede. Først finder vi returtypen på den definerede, og så sammenligner vi den med den returnede type. Hvis disse ikke er ens kastes en fejl, ellers fortsættes tjekket af funktionskroppen.
+I \texttt{checkFunDec} funktionen tjekker vi om returtypen for en funktion er
+den samme som, den definerede. Først finder vi returtypen på den definerede, og
+så sammenligner vi den med den returnede type. Hvis disse ikke er ens kastes en
+fejl, ellers fortsættes tjekket af funktionskroppen.
 
 \begin{minted}[bgcolor=bg]{sml}
-  S100.Return (e,p) => 
-       if getType t sf = checkExp e vtable ftable
-       then checkStat body vtable ftable
-       else raise Error("Returning type is not the same as the declared type",p)
+S100.Return (e,p) => 
+   if getType t sf = checkExp e vtable ftable
+   then checkStat body vtable ftable
+   else raise Error("Returning type is not the same as the declared type",p)
 \end{minted}
 
-I \texttt{checkProg} samles typetjekningen, og de inbyggede funktioner tilføjes funktionstabellen.
+I \texttt{checkProg} samles typetjekningen, og de inbyggede funktioner tilføjes
+funktionstabellen.
 
 \section{Kodegenerering}
 

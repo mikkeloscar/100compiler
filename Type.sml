@@ -197,7 +197,6 @@ struct
       let
 	  (* checks if a boolean-list contains a 'true' *)
 	  fun exists [] = false
-	    | exists [x] = x
 	    | exists (x::xs) = x orelse exists xs
       in
    	  case s of
