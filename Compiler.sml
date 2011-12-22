@@ -502,12 +502,16 @@ struct
      Mips.JR (RA,[]),
 
 
-     Mips.LABEL "getstring", 
-     Mips.ADDI("4","0","8"),
-     Mips.ADDI("5","0","10"),
-     Mips.LI("2","8"),
-     Mips.SYSCALL,
-     Mips.JR (RA,[]),
+     Mips.LABEL "getstring",  (* getstring *)
+     Mips.ADDI(HP,HP,"8"),
+         Mips.ADDI ("5","2","0"),   
+         Mips.ADDI ("4",HP,"0"),      
+
+         Mips.LI ("2","8"),       
+         Mips.SYSCALL,    
+   
+         Mips.ADDI("2",HP,"0"),       
+         Mips.JR (RA, []),
 
 
      Mips.LABEL "putstring", 
@@ -555,6 +559,9 @@ struct
 	 Mips.LI ("2","5"),       (* read_int syscall *)
 	 Mips.SYSCALL,
 	 Mips.JR (RA,[]),
+
+
+
 
 	 Mips.DATA "",
 	 Mips.ALIGN "2",

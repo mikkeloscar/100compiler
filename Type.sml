@@ -189,7 +189,7 @@ struct
 	 val decs = checkDecs d
 	 val statlist = List.map (fn st => checkStat st (decs@vtable) ftable) stats
      in
-	 () (* if function reaches this, all stats and decs in block are ok *)
+	 () (* if this is reached, all stats and decs in the block are ok *)
      end
     
   (* checks if statement contains return statement in all paths *)

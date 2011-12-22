@@ -2,19 +2,12 @@
 
 int main()
 {
+char *a,*b;
 
+a = getstring(15);
+b = getstring(15);
+putstring(a);
+putstring(b);
 
-char *a,*b,*e;
-int i,j;
-
-{
-i = 1;
-putint(i);
+return 0;
 }
-
-putint(i);
-
- return 0;
-
-}
-

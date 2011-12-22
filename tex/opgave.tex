@@ -36,23 +36,54 @@
 \title{Oversættere \\ G-opgave}
 \maketitle
 
-\thispagestyle{empty}
+\begin{minted}[bgcolor=bg]{c}
+ /* The report and documentation for the compiler
+ for the programming language 100 */
+
+ int main(){
+   char *a;
+   int *b,i;
+
+   a = balloc(27);
+   b = walloc(4);
+   a = "Written by Aske and Mikkel";
+ 
+   putstring(a);
+ 
+   b[0] = 2;
+   b[1] = 0;
+   b[2] = 1;
+   b[3] = 1;
+
+   i = 0;
+   while(i < 4){
+     putint(b[i]);
+     i = i + 1;
+   }
+ 
+   return 1;
+}
+\end{minted}
+
+
+
 \newpage
 
 
-%\begin{minted}[bgcolor=bg]{sml}
-%fun x = []
-%  | x::s = [x]
+%\begin{minted}[bgcolor=bg]{c}
+
 %\end{minted}
 
 \tableofcontents
+
+\newpage 
 
 \section*{Indledning}
 Denne rapport er en del af godkendelsesopgaven til kurset Oversættere på Datalogisk Institut, ved Københavns Universitet 2011. Opgaven beskriver hvordan gruppen har implementeret en oversætter til programmingssproget \texttt{100}. Oversætteren er skrevet i \texttt{SML}, og væsentligste overvejselser gruppen har gjort sig, samt programuddrag medtages i denne rapport. Rapporten skal læses sideløbende med selve oversætteren der er afleveret sammen med rapporten i en \texttt{zip} fil.
 
 \section{Lexer}
 Leksikalsk analyse er fortolkningen af en givent tekst input, til \texttt{tokens}. Lexeren, der foretager den leksikalske analyse består af en række regler af regulære udtryk der afgør hvad token skal forstås som. Lexeren består foruden de regulære udtryk af en liste af nøgleord, der altid ser ens ud. Vi har til denne liste tilføjet nøgleordet \textit{while}, da denne ikke var at finde i det oprindelige skelet. Regelsættet er at finde i \texttt{Lexer.lex}\\
-Foruden at have tilføjet simple regulære udtryk til at matche \texttt{*}, \texttt{[}, \texttt{]}, \texttt{\{}, \texttt{\}} og \texttt{==} - har vi tilføjet to regulære udtryk til at matche String og Char. Det regulære udtryk, samt fjernelsen af de to anførselstegn rundt om Stringen udgør vores leksikalske analyse af string (ligeledes for char), og er implementeret således:\\
+Foruden at have tilføjet simple regulære udtryk til at matche \texttt{*}, \texttt{[}, \texttt{]}, \texttt{\{}, \texttt{\}} og \texttt{==} har vi tilføjet to regulære udtryk til at matche String og Char. Det regulære udtryk, samt fjernelsen af de to anførselstegn rundt om Stringen udgør vores leksikalske analyse af string (ligeledes for char), og er implementeret således:\\
 
 \begin{minted}[bgcolor=bg]{sml}
  | `"` ([^`\` `"` `'`] | `\` ([^`a`] | `a`))+ `"`
@@ -62,7 +93,7 @@ Foruden at have tilføjet simple regulære udtryk til at matche \texttt{*}, \tex
        | SOME s => Parser.CSTRING (s, getPos lexbuf) }
 \end{minted}	 
     
-En char eller string kan indeholde hhv. et eller flere tegn med ASCII kode mellem 32 og 126 undtagen tegnene ’, " og \. Dette er lavet ved at definere en sekvens af alle tegn undtagen disse, eller en sekvens indeholdende alle tegn (er lavet ved en sekvens af alt undtagen 'a', eller 'a'), med et escape tegn foran. For char skal der være én af disse, og for string en eller flere.
+En char eller string kan indeholde hhv. et eller flere tegn med ASCII kode mellem 32 og 126 undtagen tegnene \texttt{’} \texttt{,} \texttt{"} og \textbackslash. Dette er lavet ved at definere en sekvens af alle tegn undtagen disse, eller en sekvens indeholdende alle tegn (er lavet ved en sekvens af alt undtagen 'a', eller 'a'), med et escape tegn foran. For char skal der være én af disse, og for string en eller flere.
     
     
 \section{Parser}
@@ -84,9 +115,93 @@ Lval : ...
 
 Der er også implementeret \texttt{REF ID} til \texttt{Sid}, og til \texttt{Lval} er der tilføjet \texttt{ID REF} og \texttt{ID LSBRACKET Exp RSBRACKET}, sidstnævnte til at passe med et index-check af en pointer, eksempeltvis \texttt{a[2]}.
 
-\section{Type}
+\section{Typechecker}
+Efter et program er godkendt af lexeren og parseren, kan der dog stadig forefindes fejl. I typecheckeren tjekker vi om datatypener, variablene og sprogkonstruktionerne stemmer overens med brugen af udtryk i programmet. For at understøtte typchekeren har vi implementeret 4 forskellige datatyper, der rundt omrking i typecheckeren bruges til at holde styr på hvilke typer variable er tildelt og hvilke typer der er lovlige for hvilke operationer, samt hvilke typer der returneres. Funktionerne \texttt{convertType} og \texttt{convertTypeRef} bruges til at oversætte de ækvivalenter typer i \texttt{S100.sml} til datatypen implementeret i typecheckeren. \\
+Funktionen \texttt{checkExp} tjekker om et expression er lovligt, samt hvilken type det bør returnere. Dette ses bedst med et eksempel fra \texttt{checkExp}, der tjekker om en plus-operation er lovlig. Der checkes på de mønstre defineret i opgaven, og der returneres den type den givne operation ville afgive:\\
+
+\begin{minted}[bgcolor=bg]{sml}
+  | S100.Plus (e1,e2,p) =>
+    (case (checkExp e1 vtable ftable,
+           checkExp e2 vtable ftable) of
+      (Int,Int) => Int
+    | (Int,IntRef) => IntRef
+    | (Int,CharRef) => CharRef
+    | (IntRef, Int) => IntRef
+    | (CharRef, Int) => CharRef
+    | (_,_) => raise Error ("Type mismatch in assignment",p))
+\end{minted}
+
+Rammer funktionen ingen af de tilladte type-kombinationer, kaste en fejl, da der derved at forsøg en addition med et ulovligt typevalg. \\
+
+I funktionen \texttt{checkLval} tjekkes de 3 tilladte \textit{Lval} grammatikken for 100 understøtter; \textbf{id}, \textbf{id}* samt \textbf{id}[\textit{Exp}]. Der kigges i symboltabellen, og hvis der findes et resultat returneres dette, ellers kastes en fejl om dette. I case-mønstret for \texttt{S100.Deref} kaster vi en reference til en type, selvom typen der findes i symboltabellen er en af de to primitivite typer \textit{Char} eller \textit{Int}. Dette gøres da typen af en \texttt{Deref} altid vil være en referece. I mønstret for \texttt{S100.Index}, checkes først om \textbf{id}'et overhovedet er en reference, og dernæst sendes typen videre som en primitiv type af dens referencetype. Dette ses på følgende implementation: \\
+
+\begin{minted}[bgcolor=bg]{sml}
+  | S100.Index (s,e,p) =>
+    (case lookup s vtable of
+      SOME t => if t = IntRef orelse t = CharRef
+                then if t = IntRef then Int else Char
+                else raise Error ("This is not a reference: "^s,p)
+     | NONE => raise Error ("Unkown pointer: "^s,p))
+\end{minted}
+
+Denne case kaster en fejl hvis det ikke er en referencetype der laves lookup på, eller hvis den ikke findes. Ellers returneres typen som reference-type.\\
+
+Funktionen \texttt{checkStat} tjekker om en \textit{Stat} er typemæssigt i orden, og returnerer en unit-type \textbf{()} såfremt denne ikke indeholder fejl. Flere at de i grammatikken nævnte grammatikker kan indeholde flere Stats, da grammatikken er rekursiv. Dette betyder at eksempeltvis et IF-statement kan indeholder flere IF og WHILE-statements. Dette er i typecheckeren håndteret ved at lave cases for hver Stat, samt rekursivt lade disse køre \texttt{checkStat}. En block er et statement der inholder sit eget \textit{scope} - altså hvor tildelinger af eksmepeltvis variable ikke er synlige uden for scopet. Block'en startes med '\texttt{\{}' og sluttes med '\texttt{\}}', men da IF og WHILE-statements ofte konstrueres ved brug af disse tegn, har vi sørget for at udtryk inde i disse, ikke medregnes som normale scopes. En IF-ELSE kan indeholde en block i enten begge tilfælge (både IF- og ELSEdelen), i en af dem, eller ingen af dem. Dette er håndteret ved patternmatching i casen for \texttt{S100.IfElse}. Block-statementet er implemteret således:\\
+
+\begin{minted}[bgcolor=bg]{sml}
+  | S100.Block (d,stats,p) =>
+    let
+        val decs = checkDecs d
+        val statlist = List.map
+                       (fn st => checkStat st (decs@vtable) ftable) stats
+    in
+        () (* if this is reached, all stats and decs in the block are ok *)
+    end
+\end{minted}
+
+En block indeholder en liste af stats, og \texttt{checkStat}-funktionen køres på hver af disse, med List.map. Vi sørger for at både blockens scope, samt programmets øvrigte scope er tilgængeligt inde i blocken.\\
+
+Vi har i typecheckeren implenteret en funktion der tjekker om et statement indeholder et return-statement i alle veje (hvis dette statement indeholder flere statements). Eksempeltvis kan en funktion godt indeholde et return-statement, men uden sikkerhed for at det altid vil kunne nås, hvis det eksempeltvis er indeholdt i et \texttt{WHILE}-loop. Denne funktion returnerer en boolsk-værdi, hvorvidt det undersøgte statement  indeholder et return i alle veje eller ej. Funktionen hedder \texttt{checkFunDec}, og kaldes fra \texttt{checkProg}. Funktionen laver en case over inputtet og tjekker hvert af disses muligheder igennem patternmatching og rekursion. Hvis statementet er et \texttt{return} er den trivielt sand. Hvis det er en \texttt{if} eller \texttt{while} returneres falsk, da disse aldrig med sikkerhed vil afvikles. Hvis det er et \texttt{if-else} tjekkes om begge af disse indeholder et \texttt{return}. Hvis det er en \texttt{block} tjekkes om denne statlist indeholder en \texttt{return} i alle veje. Til at bistå denne process har vi skabt funktionen \texttt{exists} der tjekker om en liste af boolske værdier indeholder et \texttt{true}.
+
+\begin{minted}[bgcolor=bg]{sml}
+    (* checks if a boolean-list contains a 'true' *)
+    fun exists [] = false
+      | exists [x] = x
+      | exists (x::xs) = x orelse exists xs
+\end{minted}
+
+Funktionen mappes på en statlist hvis et statement indeholder sådan en, og exists beretter om indeholdet af en sandhedsværdi:\\
+
+\begin{minted}[bgcolor=bg]{sml}
+  | S100.Block (d,se,p) =>
+      let
+           (* create a list of returnchecked statements
+              and check if a return exists here *)
+           val returnlist = (map checkReturn se)
+      in
+           exists returnlist
+      end
+\end{minted}
 
 
+I \texttt{checkFunDec} funktionen tjekker vi om returtypen for en funktion er den samme som, den definerede. Først finder vi returtypen på den definerede, og så sammenligner vi den med den returnede type. Hvis disse ikke er ens kastes en fejl, ellers fortsættes tjekket af funktionskroppen.
+
+\begin{minted}[bgcolor=bg]{sml}
+  S100.Return (e,p) => 
+       if getType t sf = checkExp e vtable ftable
+       then checkStat body vtable ftable
+       else raise Error("Returning type is not the same as the declared type",p)
+\end{minted}
+
+I \texttt{checkProg} samles typetjekningen, og de inbyggede funktioner tilføjes funktionstabellen.
+
+\section{Kodegenerering}
+
+
+
+\subsection{Mangler ved implementationen}
+
+\section{Efterskrift}
 
 \bibliography{litteratur}{}
 \bibliographystyle{plain}
